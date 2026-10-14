@@ -486,6 +486,9 @@ test('E11: 대응 설계 — ρ가 클수록 SE가 줄고, 설계를 무시한 W
   const stats = page.locator('.stat-box')
   await expect(stats.nth(2)).toContainText(/0\.\d{4}/)
   await page.getByRole('button', { name: '1,000회' }).click()
+  // 표가 새 반복 결과로 채워진 뒤에 읽는다
+  await expect(page.locator('.compare-table tbody tr', { hasText: /대응 t/ }).locator('td').first()).toContainText('%')
+  await expect(page.locator('.compare-table tbody tr', { hasText: /설계를 무시/ }).locator('td').first()).toContainText('%')
   const len = async (label: RegExp) => Number((await page.locator('.compare-table tbody tr', { hasText: label }).locator('td').nth(1).textContent())!)
   expect(await len(/설계를 무시/)).toBeGreaterThan(await len(/대응 t/))
 })
