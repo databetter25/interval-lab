@@ -1,0 +1,12 @@
+{
+  "name": "구간 실험실 — 구간추정 시뮬레이션",
+  "short_name": "구간 실험실",
+  "description": "『통계학의 개념 및 제문제』 제8장 구간추정을 시뮬레이션으로 배우는 실험실",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0071e3",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

@@ -1,0 +1,603 @@
+@import './tokens.css';
+@import './base.css';
+
+/* ---------- 구간 실험실 의미 색 (PRD v2 §6.5: 색 + 모양 + 선 형태를 함께 쓴다) ---------- */
+:root {
+  --c-truth: #1d1d1f; /* 참값: 진한 실선, 움직이지 않음 */
+  --c-cover: #0066cc; /* 참값을 포함한 구간 */
+  --c-cover-fill: rgba(0, 102, 204, 0.18);
+  --c-miss: #c2410c; /* 포함하지 않은 구간 (+ ✕ 표시) */
+  --c-neutral: #6e6e73; /* 참값을 숨겼을 때 */
+  --c-sel-bg: rgba(0, 102, 204, 0.1);
+  --c-accept: #0066cc; /* 채택역 */
+  --c-accept-fill: rgba(0, 113, 227, 0.13);
+  --c-reject-fill: rgba(192, 57, 43, 0.08);
+  --c-mu0: #00796b; /* 가설값 μ₀ */
+  --c-pval-fill: rgba(110, 64, 201, 0.22);
+}
+
+/* ---------- 실험 머리 ---------- */
+.lab-head {
+  padding: 84px 0 8px;
+}
+.lab-head h1 {
+  font-size: clamp(1.6rem, 3.6vw, 2.3rem);
+  letter-spacing: -1px;
+  margin: 6px 0 4px;
+}
+.lab-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0 16px;
+}
+.lab-tab {
+  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--c-border-lt);
+  background: var(--c-bg-alt);
+  color: var(--c-text-secondary);
+  font-size: 0.85rem;
+  font-weight: var(--fw-medium);
+  text-decoration: none !important;
+}
+.lab-tab[aria-current='page'] {
+  background: var(--c-blue);
+  border-color: var(--c-blue);
+  color: #fff;
+}
+.lab-tab .tab-id {
+  font-weight: var(--fw-bold);
+  margin-right: 6px;
+}
+
+/* ---------- 질문 바 · 예상 ---------- */
+.question-bar {
+  background: var(--c-bg-subtle);
+  border: 1px solid var(--c-border-lt);
+  border-radius: var(--r-lg);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.question-bar .q {
+  font-size: 1.05rem;
+  font-weight: var(--fw-semibold);
+  margin: 0 0 10px;
+}
+.predict-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+@media (max-width: 768px) {
+  .predict-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.confidence-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 0.85rem;
+}
+.feedback {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  font-size: 0.9rem;
+}
+.feedback.ok {
+  background: var(--c-green-bg);
+}
+.feedback.no {
+  background: var(--c-yellow-bg);
+}
+.feedback .mis {
+  font-size: 0.75rem;
+  color: var(--c-text-secondary);
+}
+
+/* ---------- 실행 버튼 · 단계 ---------- */
+.run-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.run-bar .btn-outline,
+.run-bar .btn-filled {
+  min-height: 36px;
+}
+.stage-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 12px;
+}
+@media (max-width: 600px) {
+  .stage-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.stage-btn {
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--c-border-lt);
+  background: var(--c-bg);
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  min-height: 44px;
+}
+.stage-btn b {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--c-text-secondary);
+}
+.stage-btn[aria-current='step'] {
+  border-color: var(--c-blue);
+  background: var(--c-blue-bg);
+}
+.stage-btn.done b {
+  color: var(--c-green);
+}
+
+/* ---------- 결과 카드 ---------- */
+.stats-row.four {
+  grid-template-columns: repeat(4, 1fr);
+}
+@media (max-width: 768px) {
+  .stats-row.four {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.result-line {
+  font-size: 0.85rem;
+  color: var(--c-text-secondary);
+  margin: 8px 2px 0;
+}
+.duality {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--c-border-lt);
+  background: var(--c-bg-subtle);
+  font-size: 0.88rem;
+  margin: 10px 0;
+}
+.duality .eq {
+  color: var(--c-text-tertiary);
+}
+.hidden-note {
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--c-yellow-bg);
+  font-size: 0.85rem;
+}
+
+/* ---------- 선택한 구간 ---------- */
+.sel-box {
+  font-size: 0.85rem;
+}
+.sel-box dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 12px;
+  margin: 6px 0 10px;
+}
+.sel-box dt {
+  color: var(--c-text-tertiary);
+}
+.sel-box dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.raw-data {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.78rem;
+  word-break: break-all;
+  color: var(--c-text-secondary);
+}
+
+/* ---------- 설명 탭 ---------- */
+.explain-tabs .tab-nav {
+  display: flex;
+  margin-bottom: 12px;
+}
+.explain-tabs .tab-btn {
+  flex: 1;
+  padding: 7px 8px;
+}
+
+/* ---------- 내보내기 ---------- */
+.export-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--c-border-lt);
+  margin-top: 16px;
+}
+.export-bar .label {
+  font-size: 0.78rem;
+  color: var(--c-text-tertiary);
+  margin-right: 4px;
+}
+.toast {
+  font-size: 0.8rem;
+  color: var(--c-green);
+}
+
+.chart-caption {
+  font-size: 0.78rem;
+  color: var(--c-text-secondary);
+  margin: 4px 4px 0;
+}
+.chart-title {
+  font-size: 0.85rem;
+  font-weight: var(--fw-semibold);
+  margin: 14px 4px 2px;
+}
+.progress-inline {
+  flex: 1 1 120px;
+  min-width: 120px;
+}
+
+/* ---------- 홈 ---------- */
+.idea-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin: 20px 0;
+}
+.idea-table th,
+.idea-table td {
+  border-bottom: 1px solid var(--c-border-lt);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+.idea-table th {
+  color: var(--c-text-secondary);
+  font-weight: var(--fw-semibold);
+  font-size: 0.8rem;
+}
+
+/* ---------- 움직임 ---------- */
+@keyframes stackIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.stack-new {
+  animation: stackIn var(--dur-base) var(--ease-out);
+}
+@keyframes segIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 0.55;
+    transform: none;
+  }
+}
+.belt-seg {
+  animation: segIn var(--dur-slow) var(--ease-spring) both;
+}
+@keyframes bandIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.belt-band {
+  animation: bandIn var(--dur-enter) var(--ease-out) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stack-new,
+  .belt-seg,
+  .belt-band {
+    animation: none;
+  }
+}
+
+/* 강의 모드 */
+body.present .question-bar .q {
+  font-size: 1.35rem;
+}
+.kbd-help {
+  font-size: 0.78rem;
+  color: var(--c-text-secondary);
+}
+kbd {
+  font-family: inherit;
+  font-size: 0.75rem;
+  padding: 1px 6px;
+  border: 1px solid var(--c-border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--c-bg);
+}
+
+/* ---------- 실험 3단 배치 (PRD v2 §6.2: 입력 | 그림 | 설명) ---------- */
+.lab-grid {
+  grid-template-columns: 270px minmax(0, 1fr) 300px;
+  grid-template-areas: 'settings chart explain';
+}
+.lab-grid .col-settings {
+  grid-area: settings;
+}
+.lab-grid .col-chart {
+  grid-area: chart;
+}
+.lab-grid .col-explain {
+  grid-area: explain;
+}
+body.present .lab-grid {
+  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-areas: 'settings chart' 'explain explain';
+}
+@media (max-width: 1080px) {
+  .lab-grid,
+  body.present .lab-grid {
+    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-areas: 'settings chart' 'explain explain';
+  }
+}
+@media (max-width: 768px) {
+  .lab-grid,
+  body.present .lab-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'chart' 'settings' 'explain';
+  }
+}
+
+.col-chart .stats-row {
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 8px;
+}
+@media (max-width: 600px) {
+  .col-chart .stats-row {
+    grid-template-columns: 1fr;
+  }
+}
+.col-chart .stat-num {
+  font-size: clamp(1rem, 1.6vw, 1.45rem);
+  letter-spacing: -0.5px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.col-chart .stat-box {
+  padding: 16px 14px;
+}
+
+.sel-box a {
+  display: inline-block;
+  padding: 4px 0;
+  min-height: 24px;
+}
+
+.model-switch {
+  margin: 0 0 16px;
+  max-width: 460px;
+}
+
+/* ---------- E06 비교표 ---------- */
+.compare-table {
+  font-size: 0.8rem;
+  width: 100%;
+}
+.compare-table th[scope='row'] {
+  white-space: nowrap;
+  font-weight: var(--fw-medium);
+}
+.compare-table .num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.compare-table .under {
+  color: var(--c-miss);
+  font-weight: var(--fw-semibold);
+}
+.compare-table .small {
+  font-size: 0.74rem;
+  min-width: 180px;
+}
+.method-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 0;
+  border-top-width: 2px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* ---------- E07 세 관점 ---------- */
+.settings-row {
+  margin-bottom: 20px;
+}
+.settings-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+}
+.views-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.two-anim {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 8px;
+}
+@media (max-width: 960px) {
+  .views-grid,
+  .two-anim,
+  .settings-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.view-card h3 {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+  margin: 2px 0 6px;
+}
+.view-card .eyebrow {
+  margin: 0;
+}
+.view-sentence {
+  font-size: 0.9rem;
+  font-weight: var(--fw-medium);
+  margin: 8px 0 0;
+}
+.view-object {
+  font-size: 0.8rem;
+  color: var(--c-text-secondary);
+  margin: 8px 0 0;
+}
+.view-object b {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--c-text-tertiary);
+}
+.chart-panel h3 {
+  font-size: 1rem;
+  margin: 2px 0 10px;
+}
+.view-card .katex-display {
+  font-size: 0.82em;
+}
+
+/* ---------- E08 구간 종류 ---------- */
+.kinds-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+@media (max-width: 960px) {
+  .kinds-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .kinds-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.kind-card {
+  padding: 16px;
+}
+.kind-card .eyebrow {
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0.5px;
+}
+.kind-card h3 {
+  margin: 2px 0 6px;
+  font-size: 1.05rem;
+}
+.kind-target,
+.kind-q {
+  font-size: 0.82rem;
+  margin: 0 0 8px;
+}
+.kind-target b {
+  color: var(--c-text-tertiary);
+  font-size: 0.72rem;
+  margin-right: 4px;
+}
+.kind-q {
+  color: var(--c-text-secondary);
+}
+.compare-table .target-hit {
+  font-weight: var(--fw-bold);
+  background: var(--c-blue-bg);
+}
+
+/* ---------- E05 설계 ---------- */
+.design-tabs {
+  display: inline-flex;
+  margin: 0 0 16px;
+}
+.design-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 760px) {
+  .design-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- E03 피벗 ---------- */
+.pivot-step {
+  border-top: 1px solid var(--c-border-lt);
+  margin-top: 12px;
+  padding-top: 4px;
+}
+.pivot-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 760px) {
+  .pivot-line {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.pivot-note {
+  font-size: 0.78rem;
+  color: var(--c-text-secondary);
+}
+.pivot-note.flip {
+  color: var(--c-miss);
+  font-weight: var(--fw-semibold);
+}
+
+/* 문단 안의 링크는 색만으로 구분하지 않는다 (WCAG link-in-text-block) */
+.note a,
+.chart-caption a,
+.explain p a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ---------- 실험 탭: 핵심 / 심화 두 줄 ---------- */
+.lab-tabs-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0 16px;
+}
+.lab-tabs-wrap .lab-tabs {
+  margin: 0;
+  align-items: center;
+}
+.lab-tier {
+  font-size: 0.72rem;
+  font-weight: var(--fw-semibold);
+  color: var(--c-text-secondary);
+  width: 32px;
+  flex: none;
+}
