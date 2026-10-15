@@ -1,5 +1,5 @@
 // E01 반복표집 실험실 — 고정된 참값과 움직이는 구간 (PRD v2 §7 E01)
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { randomSeed } from '../engine/core/rng'
 import { criticalValue, standardError, type Alt, type Method } from '../engine/meanInterval'
@@ -50,6 +50,18 @@ export function E01({ s, update }: { s: LabState; update: Update }) {
   }
   const blocks = useMemo(() => blockCounts(stats.covers, count), [stats, count])
 
+  const [linkMsg, setLinkMsg] = useState('')
+  /** 강의자용 숨김 링크: URL에는 중심값(지금 μ)과 seed만 들어가고, 참값은 seed로 정한 오프셋을 더해 만든다 */
+  const copyHiddenLink = () => {
+    const seed = s.seed < 0 ? randomSeed() : s.seed
+    const params = serializeState({ ...s, hm: true, hide: true, muc: s.hm ? s.muc : s.mu, k: 0, sel: -1, seed })
+    const url = `${location.origin}${location.pathname}#/lab/e01?${params.toString()}`
+    navigator.clipboard?.writeText(url).then(
+      () => setLinkMsg('숨김 링크를 복사했습니다. 참값은 URL에 없지만 보안 기능은 아닙니다.'),
+      () => setLinkMsg(url),
+    )
+    setTimeout(() => setLinkMsg(''), 4000)
+  }
   const draw = (m: number) => update((cur) => ({ k: Math.min(LIMITS.k[1], cur.k + m), seed: cur.seed < 0 ? randomSeed() : cur.seed }))
   const toB = () => update((cur) => ({ k: Math.max(cur.k, cur.B), seed: cur.seed < 0 ? randomSeed() : cur.seed }))
   const stop = () => update({ k: reps.cancel() })
@@ -100,7 +112,7 @@ export function E01({ s, update }: { s: LabState; update: Update }) {
               ))}
             </div>
           </div>
-          <SliderField label="참값 μ (교육용)" value={s.mu} min={-1000} max={1000} step={1} onChange={(mu) => update({ mu })} />
+          <SliderField label="참값 μ (교육용)" value={s.mu} min={-1000} max={1000} step={1} onChange={(mu) => update({ mu })} disabled={s.hm} disabledReason={`숨김 링크: 참값은 중심값 ${s.muc}에서 seed로 정한 만큼 떨어져 있습니다(±1.5σ 안).`} />
           <SliderField label="모표준편차 σ" value={s.sigma} min={0.5} max={100} step={0.5} onChange={(sigma) => update({ sigma })} />
           <SliderField label="표본크기 n" value={s.n} min={LIMITS.n[0]} max={200} step={1} onChange={(n) => update({ n })} hint="숫자 칸에는 1000까지 입력할 수 있습니다." />
           <Segmented<Method>
@@ -166,6 +178,14 @@ export function E01({ s, update }: { s: LabState; update: Update }) {
             <button type="button" className="btn-outline sm" aria-pressed={s.hide} onClick={() => update({ hide: !s.hide })} style={{ marginLeft: 'auto' }}>
               {s.hide ? '참값 공개' : '참값 숨기기'}
             </button>
+            <button type="button" className="btn-ghost" onClick={copyHiddenLink} title="강의자용: 참값을 URL에 두지 않는 링크">
+              숨김 링크 복사
+            </button>
+            {linkMsg && (
+              <span className="toast" role="status">
+                {linkMsg}
+              </span>
+            )}
           </div>
 
           <IntervalStack

@@ -3,7 +3,7 @@ import { useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { randomSeed } from '../engine/core/rng'
 import { mcSe, missSide } from '../engine/repeat'
-import { IND_METHODS, indInterval, pairedInterval, propDiffCoverage, propDiffWald, sePaired, seIndependent, type IndMethod } from '../engine/twoSample'
+import { IND_METHODS, indInterval, pairedInterval, propDiffCoverage, propDiffNewcombe, propDiffWald, sePaired, seIndependent, type IndMethod } from '../engine/twoSample'
 import { DesignCurveChart } from '../components/chart/DesignCurveChart'
 import { IntervalStack, type StackItem } from '../components/chart/IntervalStack'
 import { AssumptionBadges, ExplainTabs, ExportBar, Predict } from '../components/lab'
@@ -70,9 +70,11 @@ export function E11({ s, update }: { s: LabState; update: Update }) {
 
   // 두 비율: 정확 포함률
   const propCov = useMemo(() => (de === 'prop' ? propDiffCoverage(s.pp1, n1, s.pp2, n2, level) : null), [de, s.pp1, s.pp2, n1, n2, level])
+  const propCovN = useMemo(() => (de === 'prop' ? propDiffCoverage(s.pp1, n1, s.pp2, n2, level, 'newcombe') : null), [de, s.pp1, s.pp2, n1, n2, level])
   const ex1 = Math.round(n1 * s.pp1)
   const ex2 = Math.round(n2 * s.pp2)
   const propIv = propDiffWald(ex1, n1, ex2, n2, level)
+  const propIvN = propDiffNewcombe(ex1, n1, ex2, n2, level)
 
   const row = (label: string, p: Perf) => (
     <tr key={label}>
@@ -258,27 +260,30 @@ export function E11({ s, update }: { s: LabState; update: Update }) {
             </>
           )}
 
-          {de === 'prop' && propCov && (
+          {de === 'prop' && propCov && propCovN && (
             <>
               <StatGrid
                 stats={[
-                  { tag: 'Wald 차이 구간의 정확 포함률', label: `p₁ = ${s.pp1}, p₂ = ${s.pp2}`, value: pct(propCov.coverage, 2), sub: `명목 ${pct(level)}` },
-                  { tag: '좌측 · 우측 비포함', label: 'P(L > δ) · P(U < δ)', value: `${pct(propCov.missLeft)} · ${pct(propCov.missRight)}`, tone: 'orange' },
-                  { tag: `예: x₁ = ${ex1}, x₂ = ${ex2}`, label: 'Wald 95% 구간', value: `[${f4(propIv.lower)}, ${f4(propIv.upper)}]` },
+                  { tag: 'Wald (교재 8.6.2) 정확 포함률', label: `좌 ${pct(propCov.missLeft)} · 우 ${pct(propCov.missRight)}`, value: pct(propCov.coverage, 2), sub: `명목 ${pct(level)}` },
+                  { tag: 'Newcombe 정확 포함률', label: `좌 ${pct(propCovN.missLeft)} · 우 ${pct(propCovN.missRight)}`, value: pct(propCovN.coverage, 2), tone: 'orange', sub: 'P2: 두 Wilson 구간 결합' },
+                  { tag: `예: x₁ = ${ex1}, x₂ = ${ex2}`, label: `Wald · Newcombe ${pct(level)}`, value: `[${f4(propIv.lower)}, ${f4(propIv.upper)}]`, sub: `Newcombe [${f4(propIvN.lower)}, ${f4(propIvN.upper)}]` },
                 ]}
               />
               <DesignCurveChart
                 domain={[0.02, 0.98]}
-                series={[{ label: '포함률', color: 'var(--c-cover)', f: (p) => propDiffCoverage(p, n1, s.pp2, n2, level).coverage }]}
-                marks={[{ x: s.pp1, label: `p₁ = ${s.pp1}: ${pct(propCov.coverage, 1)}`, color: 'var(--c-truth)' }]}
+                series={[
+                  { label: 'Wald', color: 'var(--c-cover)', f: (p) => propDiffCoverage(p, n1, s.pp2, n2, level).coverage },
+                  { label: 'Newcombe', color: 'var(--c-miss)', dash: '6 3', f: (p) => propDiffCoverage(p, n1, s.pp2, n2, level, 'newcombe').coverage },
+                ]}
+                marks={[{ x: s.pp1, label: `p₁ = ${s.pp1}: Wald ${pct(propCov.coverage, 1)}`, color: 'var(--c-truth)' }]}
                 xTitle={`p₁ (p₂ = ${s.pp2} 고정)`}
                 yTitle="정확 포함률"
                 xTickCount={5}
                 yFormat={(v) => `${Math.round(v * 100)}%`}
-                ariaLabel={`p₁에 따른 Wald 차이 구간의 정확 포함률, p₂ = ${s.pp2}`}
+                ariaLabel={`p₁에 따른 정확 포함률, Wald와 Newcombe, p₂ = ${s.pp2}`}
                 height={220}
               />
-              <p className="chart-caption">모든 (x₁, x₂) 조합의 이중 전수 합입니다. 작은 n이나 0·1에 가까운 비율에서 명목수준을 밑돕니다. 개선 구간(Newcombe 등)은 P2에서 추가합니다.</p>
+              <p className="chart-caption">실선 Wald, 점선 Newcombe(hybrid score). 모든 (x₁, x₂) 조합의 이중 전수 합입니다. Wald는 작은 n이나 0·1에 가까운 비율에서 명목수준을 밑돌고, 각 비율의 Wilson 구간을 결합한 Newcombe 구간은 명목수준 근처를 더 고르게 지킵니다.</p>
             </>
           )}
 

@@ -2,6 +2,7 @@
 // 설정만 넣고 원자료는 넣지 않는다. 잘못된 값은 기본값으로 되돌린다.
 import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { splitmix32 } from '../engine/core/rng'
 import type { BinomMethod } from '../engine/binomial'
 import type { PivotKind } from '../engine/pivot'
 import type { Population } from '../engine/robust'
@@ -35,6 +36,10 @@ export interface LabState {
   stage: number
   /** 강의용: 참값 숨김 */
   hide: boolean
+  /** 강의용 숨김 링크: 참값을 URL에 두지 않고 seed에서 파생 (보안 기능 아님) */
+  hm: boolean
+  /** 숨김 링크의 중심값 (URL의 mu). 실제 참값 mu = muc + 오프셋(seed) */
+  muc: number
   /** E02 모형: 정규평균 / 이항 모비율 */
   model: 'normal' | 'binom'
   /** 이항 시행 수 n */
@@ -105,6 +110,10 @@ export interface LabState {
   un: number
   bs: number
   th: number
+  /** E14 부트스트랩: 통계량, 재표집 수 B, 표본 번호 */
+  bst: 'mean' | 'median' | 'var'
+  bb: number
+  bsi: number
 }
 
 export const DEFAULTS: LabState = {
@@ -124,6 +133,8 @@ export const DEFAULTS: LabState = {
   mu0: 100,
   stage: 1,
   hide: false,
+  hm: false,
+  muc: 100,
   model: 'normal',
   bn: 10,
   bx: 3,
@@ -168,6 +179,9 @@ export const DEFAULTS: LabState = {
   un: 5,
   bs: -1,
   th: 1,
+  bst: 'mean',
+  bb: 2000,
+  bsi: 0,
 }
 
 export const LIMITS = {
@@ -209,10 +223,12 @@ export const LIMITS = {
   un: [1, 1000],
   bs: [-1, 1],
   th: [1e-9, 1e9],
+  bb: [100, 20000],
+  bsi: [0, 1e6],
 } as const
 
-type NumKey = 'mu' | 'sigma' | 'n' | 'level' | 'k' | 'B' | 'show' | 'stage' | 'sel' | 'xbar' | 'mu0' | 'seed' | 'bn' | 'bx' | 'p0' | 'ps' | 'en' | 'pa' | 'pb' | 'm0' | 'tau0' | 'me' | 'nb' | 'lb' | 'ts' | 'sd' | 'n2' | 'sd2' | 'th1' | 'mu2' | 'sg2' | 'rho' | 'pp1' | 'pp2' | 'ga' | 'gb' | 'pn' | 'gs' | 'md' | 'mo' | 'un' | 'bs' | 'th'
-const INT_KEYS = new Set<NumKey>(['n', 'k', 'B', 'show', 'stage', 'sel', 'seed', 'bn', 'bx', 'en', 'nb', 'n2', 'pn', 'un'])
+type NumKey = 'mu' | 'sigma' | 'n' | 'level' | 'k' | 'B' | 'show' | 'stage' | 'sel' | 'xbar' | 'mu0' | 'seed' | 'bn' | 'bx' | 'p0' | 'ps' | 'en' | 'pa' | 'pb' | 'm0' | 'tau0' | 'me' | 'nb' | 'lb' | 'ts' | 'sd' | 'n2' | 'sd2' | 'th1' | 'mu2' | 'sg2' | 'rho' | 'pp1' | 'pp2' | 'ga' | 'gb' | 'pn' | 'gs' | 'md' | 'mo' | 'un' | 'bs' | 'th' | 'bb' | 'bsi'
+const INT_KEYS = new Set<NumKey>(['n', 'k', 'B', 'show', 'stage', 'sel', 'seed', 'bn', 'bx', 'en', 'nb', 'n2', 'pn', 'un', 'bb', 'bsi'])
 
 function readNum(p: URLSearchParams, key: NumKey): number {
   const raw = p.get(key)
@@ -239,6 +255,12 @@ function parseMethods(raw: string | null): CompareMethod[] {
   return out.length ? out : DEFAULTS.cm
 }
 
+/** 숨김 링크의 참값 오프셋: seed로 정한 [−1.5σ, 1.5σ] 안의 값 (σ/10 단위로 반올림) */
+export function hiddenOffset(seed: number, sigma: number): number {
+  const u = splitmix32((seed ^ 0x68696465) >>> 0) / 4294967296
+  return (Math.round((2 * u - 1) * 15) / 10) * sigma
+}
+
 export function parseState(p: URLSearchParams): LabState {
   const method = p.get('method')
   const alt = p.get('alt')
@@ -260,6 +282,8 @@ export function parseState(p: URLSearchParams): LabState {
     mu0: readNum(p, 'mu0'),
     stage: readNum(p, 'stage'),
     hide: p.get('hide') === '1',
+    hm: p.get('hm') === '1',
+    muc: DEFAULTS.muc,
     model: model === 'binom' || model === 'normal' ? model : DEFAULTS.model,
     bn: readNum(p, 'bn'),
     bx: readNum(p, 'bx'),
@@ -288,6 +312,9 @@ export function parseState(p: URLSearchParams): LabState {
     un: readNum(p, 'un'),
     bs: readNum(p, 'bs'),
     th: readNum(p, 'th'),
+    bst: p.get('bst') === 'median' || p.get('bst') === 'var' ? (p.get('bst') as 'median' | 'var') : 'mean',
+    bb: readNum(p, 'bb'),
+    bsi: readNum(p, 'bsi'),
     pp1: readNum(p, 'pp1'),
     pp2: readNum(p, 'pp2'),
     tc: p.get('tc') === '1',
@@ -307,6 +334,8 @@ export function parseState(p: URLSearchParams): LabState {
   }
   if (s.sel >= s.k) s.sel = -1
   if (s.bx > s.bn) s.bx = s.bn
+  s.muc = s.mu
+  if (s.hm && s.seed >= 0) s.mu = s.muc + hiddenOffset(s.seed, s.sigma)
   return s
 }
 
@@ -315,14 +344,16 @@ export function serializeState(s: LabState): URLSearchParams {
   const p = new URLSearchParams()
   p.set('v', String(URL_SCHEMA_VERSION))
   for (const key of Object.keys(DEFAULTS) as (keyof LabState)[]) {
-    const v = s[key]
+    // 숨김 링크에서는 파생된 참값 대신 중심값을 쓴다
+    const v = key === 'mu' && s.hm ? s.muc : s[key]
+    if (key === 'muc') continue
     if (key === 'cm') {
       const list = (v as CompareMethod[]).join(',')
       if (list !== DEFAULTS.cm.join(',')) p.set('cm', list)
       continue
     }
     if (v === DEFAULTS[key]) continue
-    if (key === 'hide' || key === 'cmp' || key === 'tc' || key === 'rp') p.set(key, '1')
+    if (key === 'hide' || key === 'cmp' || key === 'tc' || key === 'rp' || key === 'hm') p.set(key, '1')
     else p.set(key, String(v))
   }
   return p

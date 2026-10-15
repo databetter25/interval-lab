@@ -20,6 +20,7 @@ const PAGES: Record<string, Exp> = {
   e11: named(() => import('../experiments/E11'), 'E11'),
   e12: named(() => import('../experiments/E12'), 'E12'),
   e13: named(() => import('../experiments/E13'), 'E13'),
+  e14: named(() => import('../experiments/E14'), 'E14'),
 }
 
 export function LabPage() {

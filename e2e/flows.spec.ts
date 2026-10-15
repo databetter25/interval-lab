@@ -540,11 +540,56 @@ test('E13: 중앙 대 한쪽 구간, 최단은 b = 1', async ({ page }) => {
   await expect(page.locator('.chart-caption').nth(1)).toContainText('최단 b = 1.0000')
 })
 
-test('메뉴: 상단은 핵심 경로만, 탭은 핵심/심화 두 줄', async ({ page }) => {
+test('메뉴: 상단은 핵심 경로만, 탭은 핵심/심화/확장', async ({ page }) => {
   await page.goto('./#/lab/e01')
   await expect(page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link')).toHaveCount(6)
   const tabs = page.getByRole('navigation', { name: '실험 선택' })
-  await expect(tabs.getByRole('link')).toHaveCount(13)
+  await expect(tabs.getByRole('link')).toHaveCount(14)
   await page.getByRole('link', { name: '전체 실험' }).click()
-  await expect(page.locator('#experiments .feat-card')).toHaveCount(13)
+  await expect(page.locator('#experiments .feat-card')).toHaveCount(14)
+})
+
+test('숨김 링크: URL에 참값이 없고, 공개하면 ±1.5σ 안의 참값이 나타난다', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('./#/lab/e01?seed=42&mu=100')
+  await page.getByRole('button', { name: '숨김 링크 복사' }).click()
+  await expect(page.getByText('숨김 링크를 복사했습니다')).toBeVisible()
+  const url = await page.evaluate(() => navigator.clipboard.readText())
+  expect(url).toContain('hm=1')
+  expect(url).toContain('hide=1')
+  await page.goto(url)
+  await expect(page.getByText('참값을 숨긴 상태입니다')).toBeVisible()
+  await expect(page.getByRole('slider', { name: '참값 μ (교육용)' })).toBeDisabled()
+  await page.getByRole('button', { name: '100회', exact: true }).click()
+  expect(new URL(page.url()).hash).not.toMatch(/[?&]mu=(?!100(&|$))/)
+  await page.getByRole('button', { name: '참값 공개' }).click()
+  const label = (await page.locator('.col-chart svg').first().textContent())!
+  const mu = Number(/참값 μ = ([−\d.-]+)/.exec(label)![1].replace('−', '-'))
+  expect(Math.abs(mu - 100)).toBeLessThanOrEqual(37.5)
+})
+
+test('E06: 가능도비 구간 (P2)', async ({ page }) => {
+  await page.goto('./#/lab/e06?cm=wald,cp,lr')
+  await expect(page.locator('.compare-table').first().locator('tr', { hasText: '가능도비' })).toContainText('[0.0846, 0.6065]')
+  await expect(page.locator('.compare-table').nth(1).locator('tr', { hasText: '가능도비' })).toContainText('96.12%')
+})
+
+test('E11: 두 비율의 차 — Newcombe 구간과 정확 포함률 (P2)', async ({ page }) => {
+  await page.goto('./#/lab/e11?de=prop&n=20&n2=15')
+  await expect(page.locator('.stat-box').nth(1)).toContainText('94.57%')
+  await expect(page.locator('.stat-box').nth(2)).toContainText('Newcombe [')
+})
+
+test('E14: 재표집분포는 관측값 근처, 세 부트스트랩 구간과 포함률 실험', async ({ page }) => {
+  await page.goto('./#/lab/e14?seed=3&n=20')
+  await page.getByRole('radio', { name: /관측값 θ̂ 근처/ }).click()
+  await page.getByRole('button', { name: '예상 확정' }).click()
+  await page.getByRole('button', { name: '새 관측 표본' }).click()
+  await expect(page.getByText('예상이 맞았습니다.')).toBeVisible()
+  const t = page.getByRole('region', { name: '부트스트랩 구간 표' })
+  for (const name of ['백분위수', 'basic', 'BCa', 't 구간']) await expect(t).toContainText(name)
+  await page.getByRole('button', { name: '포함률 실험 실행' }).click()
+  const cov = page.getByRole('region', { name: '포함률 실험 표' })
+  await expect(cov).toBeVisible({ timeout: 30_000 })
+  await expect(cov.locator('tbody tr')).toHaveCount(3)
 })

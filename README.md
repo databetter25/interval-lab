@@ -19,7 +19,7 @@ npm run build    # dist/ 정적 산출물 (상대 경로, 서비스 워커 포�
 
 기준값을 바꾸려면 `python tools/golden.py`(SciPy)를 실행한 뒤 `npm test`로 대조한다.
 
-## 구현 범위 (P0 E01–E08, P1 E03의 χ²·F와 E09–E13)
+## 구현 범위 (P0 E01–E08, P1 E03의 χ²·F와 E09–E13, P2 E14·E06 가능도비·E11 Newcombe)
 
 | 실험 | 내용 | 경로 |
 |---|---|---|
@@ -36,8 +36,9 @@ npm run build    # dist/ 정적 산출물 (상대 경로, 서비스 워커 포�
 | E11 두 모집단 (P1) | 독립(pooled·Welch·대표본 z, 이분산·불균형에서 pooled 붕괴), 대응(ρ에 따른 SE, 설계를 무시한 분석과 비교), 두 비율의 차(Wald 정확 포함률). 분산비 F는 E03으로 연결 | `#/lab/e11` |
 | E12 베이즈 심화 (P1) | 동일꼬리 대 HPD(범용: 밀도 ≥ h, 끊어진 성분까지), 교재 예 9.7·9.8 프리셋, 치우친 Gamma·U자형 Beta·다봉 혼합, logit·log 재매개화, 사전 민감도 표 | `#/lab/e12` |
 | E13 CDF 역산과 비유일성 (P1) | Uniform(0, θ) 최댓값: 피벗 밀도, b에 따른 길이(최단 b = 1), CDF 역산 그림, 중앙·한쪽·임의 b의 포함률 시뮬레이션 | `#/lab/e13` |
+| E14 부트스트랩 구간 (P2) | 재표집분포 대 표본분포(중심 θ̂ 대 θ), 백분위수·basic·BCa(z₀·잭나이프 가속), 포함률 실험(Worker, 표본 500 × 재표집 1,000) | `#/lab/e14` |
 
-공통: URL 공유(원자료 없음), 설정 JSON 내보내기·불러오기, 결과 CSV, 그림 SVG·PNG, 예상하기와 학습기록(브라우저 저장·JSON 내보내기), 강의 모드(큰 글자·단축키).
+공통: URL 공유(원자료 없음), 강의용 숨김 링크(참값을 URL에 두지 않고 seed에서 파생, 보안 기능 아님), 설정 JSON 내보내기·불러오기, 결과 CSV, 그림 SVG·PNG, 예상하기와 학습기록(브라우저 저장·JSON 내보내기), 강의 모드(큰 글자·단축키).
 
 ## 구조
 
@@ -47,7 +48,7 @@ npm run build    # dist/ 정적 산출물 (상대 경로, 서비스 워커 포�
 | `src/engine/core/` | Φ·Φ⁻¹, t분포, 불완전베타, xoshiro128** 난수 — 검정 실험실(hypothesis-lab)에서 가져옴 |
 | `src/lib/useReplicates.ts` | 반복 요약값 캐시. 작은 요청은 바로, 큰 요청은 Web Worker에서 계산. E01·E02가 공유 |
 | `src/state/labState.ts` | 실험 설정 ↔ URL 쿼리 (URL이 단일 진실원, 잘못된 값은 기본값 복원) |
-| `src/experiments/` | E01–E13 화면 |
+| `src/experiments/` | E01–E14 화면 |
 | `src/components/chart/` | 구간 더미, 수렴 깔때기, 묶음 히스토그램, 신뢰띠, 표본분포, p-값 함수 |
 | `tools/golden.py` | SciPy 기준값 → `tests/golden/golden.json` |
 
@@ -70,6 +71,7 @@ npm run build    # dist/ 정적 산출물 (상대 경로, 서비스 워커 포�
 - `tests/engine/twoSample.test.ts`: pooled·Welch·대표본 z·대응·두 비율 SciPy 대조, 대응 상관, pooled 붕괴 시뮬레이션
 - `tests/engine/bayesSets.test.ts`: 교재 예 9.7·9.8, HPD 질량 1e−6·경계 밀도 1e−8, U자형·다봉의 끊어진 HPD, 재매개화 (SciPy 근 찾기 대조)
 - `tests/engine/cdfInversion.test.ts`: E13 수용 기준, bⁿ − aⁿ = 1 − α, 최단 b = 1, CDF 역산 = 피벗, 포함률 MC
+- `tests/engine/bootstrap.test.ts`: 같은 표본·재표집 통계량에서 Python 독립 구현과 1e−9 일치, 포함률 numpy MC 대조
 - `tests/engine/montecarlo.test.ts`: B = 100,000 포함률이 명목수준 ± 4 MC SE 안
 - `e2e/`: 수용 기준 AC-E01-1·4·6, AC-E02-1·4, AC-E04-1·2, AC-C1·C2·C3, 강의 모드 단축키, 접근성
 

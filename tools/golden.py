@@ -406,6 +406,86 @@ g["E12"] = {
 }
 
 
+# ---- P2: 이항 가능도비 구간 ----
+def lr_iv(x, n, level=0.95):
+    crit = norm.ppf(1 - (1 - level) / 2) ** 2
+    ph = x / n
+    ll = lambda p: (x * math.log(p) if x else 0.0) + ((n - x) * math.log1p(-p) if n - x else 0.0)
+    dev = lambda p: 2 * (ll(ph) - ll(p)) - crit
+    lo = 0.0 if x == 0 else _brentq(dev, 1e-15, ph, xtol=1e-15)
+    hi = 1.0 if x == n else _brentq(dev, ph, 1 - 1e-15, xtol=1e-15)
+    return lo, hi
+
+
+g["LR"] = [{"x": x, "n": n, "lower": lr_iv(x, n)[0], "upper": lr_iv(x, n)[1]} for (x, n) in ((3, 10), (0, 10), (10, 10), (1, 25), (40, 100))]
+g["LRcov"] = [{"n": n, "p": p, "value": sum(binom.pmf(k, n, p) for k in range(n + 1) if lr_iv(k, n)[0] <= p <= lr_iv(k, n)[1])} for (n, p) in ((10, 0.3), (25, 0.08))]
+
+
+# ---- P2: 두 비율의 차 Newcombe hybrid score ----
+def newcombe(a, n1, b, n2, level=0.95):
+    l1, u1 = binom_ci(a, n1, level, "wilson")
+    l2, u2 = binom_ci(b, n2, level, "wilson")
+    p1, p2 = a / n1, b / n2
+    d = p1 - p2
+    return d - math.sqrt((p1 - l1) ** 2 + (u2 - p2) ** 2), d + math.sqrt((u1 - p1) ** 2 + (p2 - l2) ** 2)
+
+
+def newcombe_cov(p1, n1, p2, n2, level=0.95):
+    d = p1 - p2
+    return sum(binom.pmf(a, n1, p1) * binom.pmf(b, n2, p2) for a in range(n1 + 1) for b in range(n2 + 1) if newcombe(a, n1, b, n2, level)[0] <= d <= newcombe(a, n1, b, n2, level)[1])
+
+
+g["Newcombe"] = {
+    "iv": [{"x1": a, "n1": n1, "x2": b, "n2": n2, "lower": newcombe(a, n1, b, n2)[0], "upper": newcombe(a, n1, b, n2)[1]} for (a, n1, b, n2) in ((56, 70, 48, 80), (9, 10, 3, 10), (0, 10, 0, 20), (30, 100, 18, 90))],
+    "cov": [{"p1": p1, "n1": n1, "p2": p2, "n2": n2, "value": newcombe_cov(p1, n1, p2, n2)} for (p1, n1, p2, n2) in ((0.3, 20, 0.2, 15), (0.05, 30, 0.1, 30))],
+}
+
+
+# ---- P2: 부트스트랩 (E14). 같은 표본·같은 재표집 통계량을 넣어 공식을 독립 구현과 대조한다 ----
+def boot_stat(kind, x):
+    if kind == "mean":
+        return float(np.mean(x))
+    if kind == "median":
+        return float(np.median(x))
+    return float(np.var(x, ddof=1))
+
+
+def boot_ivs(kind, x, bs, level=0.95):
+    a_ = 1 - level
+    th = boot_stat(kind, x)
+    bs = np.sort(bs)
+    qlo, qhi = np.quantile(bs, a_ / 2), np.quantile(bs, 1 - a_ / 2)
+    z0 = norm.ppf(np.mean(bs < th))
+    jack = np.array([boot_stat(kind, np.delete(x, i)) for i in range(len(x))])
+    jm = jack.mean()
+    acc = np.sum((jm - jack) ** 3) / (6 * np.sum((jm - jack) ** 2) ** 1.5)
+    adj = lambda zq: norm.cdf(z0 + (z0 + zq) / (1 - acc * (z0 + zq)))
+    return {"theta": th, "percentile": [qlo, qhi], "basic": [2 * th - qhi, 2 * th - qlo], "bca": [np.quantile(bs, adj(norm.ppf(a_ / 2))), np.quantile(bs, adj(norm.ppf(1 - a_ / 2)))], "z0": z0, "a": acc}
+
+
+_rng = np.random.default_rng(14)
+_x = np.round(np.exp(_rng.standard_normal(17)) * 10, 4)
+_boot = []
+for kind in ("mean", "median", "var"):
+    bs = np.array([boot_stat(kind, _rng.choice(_x, len(_x))) for _ in range(500)])
+    _boot.append({"kind": kind, "boot": sorted(bs.tolist()), **{k: (v.tolist() if hasattr(v, "tolist") else v) for k, v in boot_ivs(kind, _x, bs).items()}})
+
+
+def boot_cov(R=4000, B=1000, n=20, seed=7):
+    rng = np.random.default_rng(seed)
+    hits = {"percentile": 0, "basic": 0, "bca": 0}
+    for _ in range(R):
+        x = rng.exponential(1.0, n) - 1
+        bs = x[rng.integers(0, n, (B, n))].mean(1)
+        iv = boot_ivs("mean", x, bs)
+        for m in hits:
+            hits[m] += iv[m][0] <= 0 <= iv[m][1]
+    return {m: v / R for m, v in hits.items()}
+
+
+g["Boot"] = {"x": _x.tolist(), "cases": _boot, "covExpMean20": {"R": 4000, "B": 1000, **boot_cov()}}
+
+
 def _finite(v):
     """JSON에는 무한대가 없으므로 null로 쓴다 (테스트는 null을 ±∞로 읽는다)"""
     if isinstance(v, float) and math.isinf(v):

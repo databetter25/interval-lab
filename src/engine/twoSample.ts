@@ -5,6 +5,7 @@ import { normPpf } from './core/normal'
 import { tPpf } from './core/tdist'
 import type { Interval } from './meanInterval'
 import { pmfRow } from './binomCompare'
+import { binomInterval } from './binomial'
 
 export interface TwoSummary {
   x1: number
@@ -149,8 +150,24 @@ export function propDiffWald(x1: number, n1: number, x2: number, n2: number, lev
   return { lower: p1 - p2 - q * se, upper: p1 - p2 + q * se }
 }
 
-/** Wald 차이 구간의 정확 포함률 (이중 전수 합) */
-export function propDiffCoverage(p1: number, n1: number, p2: number, n2: number, level: number): { coverage: number; missLeft: number; missRight: number } {
+/** Newcombe (1998) hybrid score 구간: 두 Wilson 구간 [l_i, u_i]를 결합한다 */
+export function propDiffNewcombe(x1: number, n1: number, x2: number, n2: number, level: number): Interval {
+  const p1 = x1 / n1
+  const p2 = x2 / n2
+  const w1 = binomInterval(x1, n1, level, 'wilson')
+  const w2 = binomInterval(x2, n2, level, 'wilson')
+  const d = p1 - p2
+  return { lower: d - Math.sqrt((p1 - w1.lower) ** 2 + (w2.upper - p2) ** 2), upper: d + Math.sqrt((w1.upper - p1) ** 2 + (p2 - w2.lower) ** 2) }
+}
+
+export type PropMethod = 'wald' | 'newcombe'
+
+export function propDiffInterval(m: PropMethod, x1: number, n1: number, x2: number, n2: number, level: number): Interval {
+  return m === 'wald' ? propDiffWald(x1, n1, x2, n2, level) : propDiffNewcombe(x1, n1, x2, n2, level)
+}
+
+/** 차이 구간의 정확 포함률 (이중 전수 합) */
+export function propDiffCoverage(p1: number, n1: number, p2: number, n2: number, level: number, method: PropMethod = 'wald'): { coverage: number; missLeft: number; missRight: number } {
   const f1 = pmfRow(n1, p1)
   const f2 = pmfRow(n2, p2)
   const d = p1 - p2
@@ -160,7 +177,7 @@ export function propDiffCoverage(p1: number, n1: number, p2: number, n2: number,
   for (let a = 0; a <= n1; a++) {
     for (let b = 0; b <= n2; b++) {
       const w = f1[a] * f2[b]
-      const iv = propDiffWald(a, n1, b, n2, level)
+      const iv = propDiffInterval(method, a, n1, b, n2, level)
       if (iv.lower > d) ml += w
       else if (iv.upper < d) mr += w
       else cov += w

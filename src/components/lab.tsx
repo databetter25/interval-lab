@@ -20,15 +20,16 @@ export const EXPERIMENTS = [
   { id: 'e11', code: 'E11', title: '두 모집단', short: '독립·대응·두 비율', tier: 'P1' },
   { id: 'e12', code: 'E12', title: '베이즈 심화: 동일꼬리·HPD', short: 'HPD, 끊어진 집합, 재매개화, 사전 민감도', tier: 'P1' },
   { id: 'e13', code: 'E13', title: 'CDF 역산과 비유일성', short: 'Uniform(0, θ)의 최댓값, 최단 구간', tier: 'P1' },
+  { id: 'e14', code: 'E14', title: '부트스트랩 구간', short: '재표집분포, 백분위수·basic·BCa', tier: 'P2' },
 ] as const
 
 export function LabTabs({ current }: { current: string }) {
   const { search } = useLocation()
   return (
     <nav className="lab-tabs-wrap" aria-label="실험 선택">
-      {(['P0', 'P1'] as const).map((tier) => (
+      {(['P0', 'P1', 'P2'] as const).map((tier) => (
         <div key={tier} className="lab-tabs">
-          <span className="lab-tier">{tier === 'P0' ? '핵심' : '심화'}</span>
+          <span className="lab-tier">{tier === 'P0' ? '핵심' : tier === 'P1' ? '심화' : '확장'}</span>
           {EXPERIMENTS.filter((e) => e.tier === tier).map((e) => (
             <Link key={e.id} className="lab-tab" to={`/lab/${e.id}${search}`} aria-current={e.id === current ? 'page' : undefined} title={e.short}>
               <span className="tab-id">{e.code}</span>

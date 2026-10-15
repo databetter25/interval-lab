@@ -73,3 +73,16 @@ describe('PMF 점화식', () => {
     expect(performance.now() - t0).toBeLessThan(process.env.CI ? 3000 : 1000)
   })
 })
+
+describe('P2: 가능도비 구간', () => {
+  it('SciPy 근 찾기와 같다 (경계 x = 0, n 포함)', () => {
+    for (const r of golden.LR) {
+      const iv = compareInterval(r.x, r.n, 0.95, 'lr')
+      expect(Math.abs(iv.lower - r.lower), JSON.stringify(r)).toBeLessThan(1e-9)
+      expect(Math.abs(iv.upper - r.upper), JSON.stringify(r)).toBeLessThan(1e-9)
+    }
+  })
+  it('정확 포함률', () => {
+    for (const r of golden.LRcov) expect(Math.abs(performanceAt(compareBelt(r.n, 0.95, 'lr'), r.p).coverage - r.value)).toBeLessThan(1e-9)
+  })
+})

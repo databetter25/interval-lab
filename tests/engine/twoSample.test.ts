@@ -1,7 +1,7 @@
 // E11 두 모집단: SciPy 기준값, 대응 설계의 SE, pooled t의 붕괴(시뮬레이션)
 import { describe, expect, it } from 'vitest'
 import golden from '../golden/golden.json'
-import { indInterval, pairedInterval, propDiffCoverage, propDiffWald, sePaired, twoData, twoSummaries, type IndMethod } from '../../src/engine/twoSample'
+import { indInterval, pairedInterval, propDiffCoverage, propDiffNewcombe, propDiffWald, sePaired, twoData, twoSummaries, type IndMethod } from '../../src/engine/twoSample'
 
 const g = golden.E11
 
@@ -70,5 +70,21 @@ describe('설계와 시뮬레이션', () => {
       if (iv.lower <= 2 && 2 <= iv.upper) k++
     }
     expect(Math.abs(k / B - 0.95)).toBeLessThan(4 * Math.sqrt((0.95 * 0.05) / B))
+  })
+})
+
+describe('P2: Newcombe hybrid score 구간', () => {
+  it('Newcombe (1998) 예: 56/70 − 48/80 → [0.0524, 0.3339]', () => {
+    const iv = propDiffNewcombe(56, 70, 48, 80, 0.95)
+    expect(iv.lower).toBeCloseTo(0.0524, 4)
+    expect(iv.upper).toBeCloseTo(0.3339, 4)
+  })
+  it('SciPy 기준값과 정확 포함률', () => {
+    for (const r of golden.Newcombe.iv) {
+      const iv = propDiffNewcombe(r.x1, r.n1, r.x2, r.n2, 0.95)
+      expect(Math.abs(iv.lower - r.lower)).toBeLessThan(1e-12)
+      expect(Math.abs(iv.upper - r.upper)).toBeLessThan(1e-12)
+    }
+    for (const c of golden.Newcombe.cov) expect(Math.abs(propDiffCoverage(c.p1, c.n1, c.p2, c.n2, 0.95, 'newcombe').coverage - c.value)).toBeLessThan(1e-9)
   })
 })

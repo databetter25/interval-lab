@@ -33,9 +33,9 @@ export function HomePage() {
           <p className="eyebrow">01 — 추천 경로와 전체 실험</p>
           <h2 className="section-title">검정에서 구간으로</h2>
           <p className="desc">1차시(30–40분): E01 → E02 → E04 · 2차시: E03 → E05 → E08 · 3차시: E02·E04의 이항 모형 → E06 → E07 · 심화: E09–E13</p>
-          {(['P0', 'P1'] as const).map((tier) => (
+          {(['P0', 'P1', 'P2'] as const).map((tier) => (
             <div key={tier} style={{ marginTop: 24 }}>
-              <h3 className="chart-title">{tier === 'P0' ? '핵심 (P0) — 교재 8장의 중심' : '심화 (P1) — 가정, 정확성, 두 모집단, 베이즈, CDF 역산'}</h3>
+              <h3 className="chart-title">{tier === 'P0' ? '핵심 (P0) — 교재 8장의 중심' : tier === 'P1' ? '심화 (P1) — 가정, 정확성, 두 모집단, 베이즈, CDF 역산' : '확장 (P2) — 교재 밖 방법'}</h3>
               <div className="card-grid">
                 {EXPERIMENTS.filter((e) => e.tier === tier).map((e) => (
                   <Link key={e.id} to={`/lab/${e.id}`} className="feat-card" style={{ textDecoration: 'none', color: 'inherit' }}>

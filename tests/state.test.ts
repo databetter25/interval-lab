@@ -10,7 +10,7 @@ describe('URL 상태', () => {
   })
 
   it('왕복하면 같은 상태', () => {
-    const s = { ...DEFAULTS, mu: 0, sigma: 1, n: 10, method: 't' as const, k: 100, seed: 42, sel: 7, hide: true, alt: 'less' as const }
+    const s = { ...DEFAULTS, mu: 0, muc: 0, sigma: 1, n: 10, method: 't' as const, k: 100, seed: 42, sel: 7, hide: true, alt: 'less' as const }
     expect(parseState(serializeState(s))).toEqual(s)
   })
 
@@ -38,7 +38,7 @@ describe('URL 상태', () => {
 
 describe('설정 JSON (AC-C1)', () => {
   it('내보낸 뒤 불러오면 같은 상태', () => {
-    const s = { ...DEFAULTS, mu: 3, k: 250, seed: 99, method: 't' as const }
+    const s = { ...DEFAULTS, mu: 3, muc: 3, k: 250, seed: 99, method: 't' as const }
     const j = JSON.parse(JSON.stringify(settingsJson(s, 'E01')))
     expect(stateFromSettings(j)).toEqual(s)
     expect(j.rng_algorithm).toBe('xoshiro128ss-v1')
@@ -102,5 +102,23 @@ describe('이항 상태와 내보내기', () => {
     // CP: x=0 → [0, 0.3085]는 0.3을 포함, x=10·7은 포함하지 않음
     expect(rows.map((r) => r[ci])).toEqual(['1', '1', '0', '0'])
     expect(Math.abs(Number(rows[0][CSV_FIELDS.indexOf('lower')]) - 0.0667395)).toBeLessThan(1e-6)
+  })
+})
+
+describe('강의용 숨김 링크 (PRD v2 §12.3)', () => {
+  it('URL에는 참값이 없고, seed로 정한 참값이 ±1.5σ 안에 있다', () => {
+    const p = serializeState({ ...DEFAULTS, hm: true, hide: true, seed: 777, mu: 100, muc: 100 })
+    const s = parseState(p)
+    expect(p.get('mu')).toBeNull() // 중심값이 기본값이면 생략된다
+    expect(s.hm).toBe(true)
+    expect(Math.abs(s.mu - 100)).toBeLessThanOrEqual(1.5 * 25)
+    expect(p.toString()).not.toContain(`mu=${s.mu}`)
+    // 다시 직렬화해도 파생된 참값이 아니라 중심값이 남는다
+    expect(serializeState(s).get('mu')).toBeNull()
+    expect(parseState(serializeState(s)).mu).toBe(s.mu)
+  })
+  it('seed가 다르면 참값도 다르다 (대부분)', () => {
+    const mus = new Set([1, 2, 3, 4, 5, 6, 7, 8].map((seed) => parseState(serializeState({ ...DEFAULTS, hm: true, seed })).mu))
+    expect(mus.size).toBeGreaterThan(3)
   })
 })

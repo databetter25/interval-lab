@@ -61,6 +61,10 @@ export const ROUTES = [
   '#/lab/e12?bf=normal&xbar=10.2&sigma=1&n=10&m0=0&tau0=10',
   '#/lab/e13',
   `#/lab/e13?${SEED}&k=1000&bs=1`,
+  '#/lab/e14',
+  `#/lab/e14?${SEED}&bst=median&pop=lnorm&bsi=3`,
+  `#/lab/e01?hm=1&hide=1&${SEED}&k=200`,
+  '#/lab/e06?cm=wald,wilson,cp,lr',
 ]
 
 async function settle(page: Page, route: string) {
@@ -82,7 +86,7 @@ for (const route of ROUTES) {
   })
 }
 
-for (const route of ['#/', `#/lab/e02?model=binom&stage=4&${SEED}&k=500`, `#/lab/e01?${SEED}&k=1000`, '#/lab/e02?stage=3', `#/lab/e02?stage=4&${SEED}&k=200`, '#/lab/e04?mu0=90', '#/lab/e04?model=binom&p0=0.05&cmp=1', `#/lab/e06?${SEED}&k=500`, `#/lab/e07?${SEED}&k=300&prior=normal`, `#/lab/e08?${SEED}&k=300&sel=10`, '#/lab/e05', '#/lab/e03?pv=chi2&n=10&sd=2&stage=4', `#/lab/e09?${SEED}&k=300`, `#/lab/e10?tc=1&${SEED}&k=300`, `#/lab/e11?de=pair&${SEED}&k=300`, '#/lab/e12?bf=beta&rp=1', '#/lab/e13']) {
+for (const route of ['#/', `#/lab/e02?model=binom&stage=4&${SEED}&k=500`, `#/lab/e01?${SEED}&k=1000`, '#/lab/e02?stage=3', `#/lab/e02?stage=4&${SEED}&k=200`, '#/lab/e04?mu0=90', '#/lab/e04?model=binom&p0=0.05&cmp=1', `#/lab/e06?${SEED}&k=500`, `#/lab/e07?${SEED}&k=300&prior=normal`, `#/lab/e08?${SEED}&k=300&sel=10`, '#/lab/e05', '#/lab/e03?pv=chi2&n=10&sd=2&stage=4', `#/lab/e09?${SEED}&k=300`, `#/lab/e10?tc=1&${SEED}&k=300`, `#/lab/e11?de=pair&${SEED}&k=300`, '#/lab/e12?bf=beta&rp=1', '#/lab/e13', `#/lab/e14?${SEED}`]) {
   test(`모바일: 가로 넘침 없음·접근성 ${route} @mobile`, async ({ page }) => {
     await settle(page, route)
     const width = await page.evaluate(() => document.documentElement.scrollWidth)

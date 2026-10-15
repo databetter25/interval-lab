@@ -4,7 +4,7 @@ import { betaInv, binomInterval } from './binomial'
 import { normPpf } from './core/normal'
 import type { Interval } from './meanInterval'
 
-export type CompareMethod = 'wald' | 'wald_clipped' | 'wilson' | 'cp' | 'jeffreys' | 'jeffreys_boundary' | 'agresti_coull' | 'bayes_beta'
+export type CompareMethod = 'wald' | 'wald_clipped' | 'wilson' | 'cp' | 'jeffreys' | 'jeffreys_boundary' | 'agresti_coull' | 'bayes_beta' | 'lr'
 
 export interface CompareMeta {
   id: CompareMethod
@@ -23,6 +23,7 @@ export const COMPARE_METHODS: CompareMeta[] = [
   { id: 'cp', label: 'Clopper–Pearson', basis: '단측 정확검정 두 개(각 α/2) 역산', color: '#0066cc', scope: '확장' },
   { id: 'jeffreys', label: 'Jeffreys 동일꼬리', basis: 'Beta(1/2, 1/2) 사전의 사후 분위수 (검정 역산이 아님). 미수정', color: '#6e40c9', dash: '2 2', scope: '확장' },
   { id: 'agresti_coull', label: 'Agresti–Coull', basis: 'ñ = n + z², p̃ = (x + z²/2)/ñ를 쓴 Wald형 근사', color: '#00796b', dash: '10 3 2 3', scope: '확장' },
+  { id: 'lr', label: '가능도비 (LR)', basis: '가능도비 검정 역산: 2[ℓ(p̂) − ℓ(p)] ≤ χ²₁(1−α)', color: '#b4235a', dash: '1 3', scope: '확장' },
   { id: 'bayes_beta', label: 'Beta(a, b) 사전', basis: 'Beta(a + x, b + n − x) 사후의 동일꼬리 분위수', color: '#8a5a00', dash: '4 4', scope: '확장' },
   { id: 'jeffreys_boundary', label: 'Jeffreys 경계 수정 (변형)', basis: 'jeffreys에서 x = 0이면 L = 0, x = n이면 U = 1로 바꾼 변형', color: '#6e40c9', dash: '12 4', variant: true, scope: '확장' },
   { id: 'wald_clipped', label: 'Wald 잘라냄 (변형)', basis: 'wald 구간을 [0, 1]로 잘라낸 변형', color: '#c2410c', dash: '12 4', variant: true, scope: '확장' },
@@ -58,6 +59,8 @@ export function compareInterval(x: number, n: number, level: number, id: Compare
     }
     case 'bayes_beta':
       return betaEqualTail(prior.a + x, prior.b + n - x, level)
+    case 'lr':
+      return lrInterval(x, n, level)
     case 'agresti_coull': {
       const z = normPpf(1 - (1 - level) / 2)
       const nt = n + z * z
@@ -66,6 +69,34 @@ export function compareInterval(x: number, n: number, level: number, id: Compare
       return { lower: pt - h, upper: pt + h }
     }
   }
+}
+
+/** 이항 로그가능도 (0·log 0 = 0) */
+function loglik(x: number, n: number, p: number): number {
+  const a = x === 0 ? 0 : x * Math.log(p)
+  const b = n - x === 0 ? 0 : (n - x) * Math.log1p(-p)
+  return a + b
+}
+
+/** 가능도비 검정을 뒤집은 구간 {p : 2[ℓ(p̂) − ℓ(p)] ≤ χ²₁(1 − α)} */
+export function lrInterval(x: number, n: number, level: number): Interval {
+  const z = normPpf(1 - (1 - level) / 2)
+  const crit = z * z // χ²₁의 1 − α 분위수 = z²_{1−α/2}
+  const ph = x / n
+  const lmax = loglik(x, n, ph)
+  const dev = (p: number) => 2 * (lmax - loglik(x, n, p)) - crit
+  const solve = (lo: number, hi: number, incr: boolean) => {
+    for (let i = 0; i < 200; i++) {
+      const mid = (lo + hi) / 2
+      if (dev(mid) > 0 === incr) hi = mid
+      else lo = mid
+    }
+    return (lo + hi) / 2
+  }
+  // p̂에서 멀어질수록 편차가 커진다. x = 0이면 하한 0, x = n이면 상한 1
+  const lower = x === 0 ? 0 : solve(0, ph, false)
+  const upper = x === n ? 1 : solve(ph, 1, true)
+  return { lower, upper }
 }
 
 export function compareBelt(n: number, level: number, id: CompareMethod, prior?: Prior): Interval[] {
