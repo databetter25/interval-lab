@@ -593,3 +593,32 @@ test('E14: 재표집분포는 관측값 근처, 세 부트스트랩 구간과 �
   await expect(cov).toBeVisible({ timeout: 30_000 })
   await expect(cov.locator('tbody tr')).toHaveCount(3)
 })
+
+test('E08: 허용구간 (P2) — 정확 k와 Howe, β 이상을 덮은 비율 ≈ γ', async ({ page }) => {
+  await page.goto('./#/lab/e08?seed=8&n=10')
+  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: '1,000회' }).click()
+  const box = page.locator('.pivot-step .stat-box')
+  await expect(box.nth(0)).toContainText('2.8563')
+  await expect(box.nth(0)).toContainText('Howe 근사 2.8382')
+  const v = Number(/([\d.]+)%/.exec((await box.nth(2).textContent())!.split('γ = 95.0%')[1])![1]) / 100
+  expect(Math.abs(v - 0.95)).toBeLessThan(4 * Math.sqrt((0.95 * 0.05) / 3000))
+  await page.getByRole('radio', { name: '단측 상한 x̄ + kS' }).click()
+  await expect(box.nth(0)).toContainText('2.3546')
+})
+
+test('강의자 도구: 경로 링크, 숨김 링크 생성, 활동지 답 토글', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('./#/')
+  await page.getByRole('link', { name: '강의자 도구' }).click()
+  await expect(page.locator('h1')).toHaveText('수업에서 쓰는 구간 실험실')
+  await expect(page.locator('.teach-steps li')).toHaveCount(6)
+  await page.getByRole('button', { name: /E01 숨김 링크 만들기/ }).click()
+  const url = await page.evaluate(() => navigator.clipboard.readText())
+  expect(url).toMatch(/hm=1/)
+  expect(url).toMatch(/seed=\d+/)
+  await expect(page.locator('.worksheet-answer')).toHaveCount(0)
+  await page.getByLabel('답과 해설 포함').check()
+  await expect(page.locator('.worksheet-answer')).toHaveCount(12)
+  await page.getByRole('link', { name: 'E02 열기' }).click()
+  await expect(page).toHaveURL(/lab\/e02\?stage=1/)
+})

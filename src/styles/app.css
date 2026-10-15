@@ -601,3 +601,67 @@ body.present .lab-grid {
   width: 32px;
   flex: none;
 }
+
+/* ---------- 강의자 도구 ---------- */
+.teach-section {
+  margin: 28px 0;
+}
+.teach-section h2 {
+  font-size: 1.2rem;
+  margin: 0 0 12px;
+}
+.teach-steps {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  counter-reset: step;
+}
+.teach-steps li p {
+  margin: 6px 0 0;
+  font-size: 0.88rem;
+}
+.teach-steps b {
+  color: var(--c-text-tertiary);
+  font-size: 0.75rem;
+  margin-right: 6px;
+}
+.worksheet-list li {
+  margin: 0 0 18px;
+  line-height: 1.6;
+}
+.worksheet-blank {
+  height: 56px;
+  border-bottom: 1px dashed var(--c-border);
+}
+.worksheet-answer {
+  margin: 6px 0 0;
+  padding: 8px 12px;
+  background: var(--c-green-bg);
+  border-radius: var(--r-sm);
+  font-size: 0.88rem;
+}
+.print-only {
+  display: none;
+}
+@media print {
+  .nav,
+  .footer,
+  .no-print,
+  .sr-only {
+    display: none !important;
+  }
+  .print-only {
+    display: block;
+  }
+  body {
+    font-size: 12pt;
+  }
+  .worksheet {
+    margin: 0;
+  }
+  .badge {
+    border: 1px solid #999;
+  }
+}

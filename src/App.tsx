@@ -4,6 +4,7 @@ import { HomePage } from './pages/HomePage'
 import { PresentContext } from './lib/present'
 
 const LabPage = lazy(() => import('./pages/LabPage').then((m) => ({ default: m.LabPage })))
+const TeachPage = lazy(() => import('./pages/TeachPage').then((m) => ({ default: m.TeachPage })))
 
 function NotFound() {
   return (
@@ -54,6 +55,9 @@ export default function App() {
             </NavLink>
           </nav>
           <div className="nav-tools">
+            <NavLink to="/teach" className="btn-ghost sm">
+              강의자 도구
+            </NavLink>
             <button className="btn-outline sm" aria-pressed={present} onClick={() => setPresent(!present)} title="글자를 키우고 단축키를 켭니다">
               강의 모드
             </button>
@@ -66,6 +70,7 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/lab" element={<LabPage />} />
             <Route path="/lab/:id" element={<LabPage />} />
+            <Route path="/teach" element={<TeachPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

@@ -114,6 +114,10 @@ export interface LabState {
   bst: 'mean' | 'median' | 'var'
   bb: number
   bsi: number
+  /** E08 허용구간: 덮을 비율 β, 신뢰수준 γ, 양측/단측(상한) */
+  tb: number
+  tgm: number
+  tsd: 'two' | 'one'
 }
 
 export const DEFAULTS: LabState = {
@@ -182,6 +186,9 @@ export const DEFAULTS: LabState = {
   bst: 'mean',
   bb: 2000,
   bsi: 0,
+  tb: 0.9,
+  tgm: 0.95,
+  tsd: 'two',
 }
 
 export const LIMITS = {
@@ -225,9 +232,11 @@ export const LIMITS = {
   th: [1e-9, 1e9],
   bb: [100, 20000],
   bsi: [0, 1e6],
+  tb: [0.5, 0.999],
+  tgm: [0.5, 0.999],
 } as const
 
-type NumKey = 'mu' | 'sigma' | 'n' | 'level' | 'k' | 'B' | 'show' | 'stage' | 'sel' | 'xbar' | 'mu0' | 'seed' | 'bn' | 'bx' | 'p0' | 'ps' | 'en' | 'pa' | 'pb' | 'm0' | 'tau0' | 'me' | 'nb' | 'lb' | 'ts' | 'sd' | 'n2' | 'sd2' | 'th1' | 'mu2' | 'sg2' | 'rho' | 'pp1' | 'pp2' | 'ga' | 'gb' | 'pn' | 'gs' | 'md' | 'mo' | 'un' | 'bs' | 'th' | 'bb' | 'bsi'
+type NumKey = 'mu' | 'sigma' | 'n' | 'level' | 'k' | 'B' | 'show' | 'stage' | 'sel' | 'xbar' | 'mu0' | 'seed' | 'bn' | 'bx' | 'p0' | 'ps' | 'en' | 'pa' | 'pb' | 'm0' | 'tau0' | 'me' | 'nb' | 'lb' | 'ts' | 'sd' | 'n2' | 'sd2' | 'th1' | 'mu2' | 'sg2' | 'rho' | 'pp1' | 'pp2' | 'ga' | 'gb' | 'pn' | 'gs' | 'md' | 'mo' | 'un' | 'bs' | 'th' | 'bb' | 'bsi' | 'tb' | 'tgm'
 const INT_KEYS = new Set<NumKey>(['n', 'k', 'B', 'show', 'stage', 'sel', 'seed', 'bn', 'bx', 'en', 'nb', 'n2', 'pn', 'un', 'bb', 'bsi'])
 
 function readNum(p: URLSearchParams, key: NumKey): number {
@@ -315,6 +324,9 @@ export function parseState(p: URLSearchParams): LabState {
     bst: p.get('bst') === 'median' || p.get('bst') === 'var' ? (p.get('bst') as 'median' | 'var') : 'mean',
     bb: readNum(p, 'bb'),
     bsi: readNum(p, 'bsi'),
+    tb: readNum(p, 'tb'),
+    tgm: readNum(p, 'tgm'),
+    tsd: p.get('tsd') === 'one' ? 'one' : 'two',
     pp1: readNum(p, 'pp1'),
     pp2: readNum(p, 'pp2'),
     tc: p.get('tc') === '1',

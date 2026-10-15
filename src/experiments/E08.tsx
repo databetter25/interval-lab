@@ -1,4 +1,4 @@
-// E08 추정 대상이 다른 구간 (PRD v2 §7 E08): P0 개념 · P1 예측구간 계산 · P2 허용구간(개념만)
+// E08 추정 대상이 다른 구간 (PRD v2 §7 E08): P0 개념 · P1 예측구간 계산 · P2 허용구간 계산
 import { useMemo, useRef } from 'react'
 import { randomSeed } from '../engine/core/rng'
 import { meanInterval, type Method } from '../engine/meanInterval'
@@ -14,6 +14,7 @@ import { fmtInt, fmtNum } from '../lib/format'
 import { usePresent, useShortcuts } from '../lib/present'
 import { useReplicates } from '../lib/useReplicates'
 import { LIMITS, type LabState, type Update } from '../state/labState'
+import { ToleranceSection } from './ToleranceSection'
 
 const f4 = (v: number) => fmtNum(v, 4)
 const pct = (v: number, d = 1) => (Number.isFinite(v) ? `${(v * 100).toFixed(d)}%` : '—')
@@ -23,7 +24,7 @@ const KINDS = [
   { name: '신뢰구간', en: 'confidence interval', target: '고정된 모수', q: '이 절차는 참모수를 얼마나 자주 포함하는가?', status: '계산 · E01–E06' },
   { name: '신용구간', en: 'credible interval', target: '모수에 대한 사후 불확실성', q: '자료와 사전분포 아래에서 사후질량은 얼마인가?', status: '계산 · E07' },
   { name: '예측구간', en: 'prediction interval', target: '미래 관측값 하나', q: '새 관측값을 얼마나 자주 포함하는가?', status: '계산 · 아래' },
-  { name: '허용구간', en: 'tolerance interval', target: '모집단의 일정 비율 β', q: '적어도 β의 모집단 질량을 신뢰수준 γ로 포함하는가?', status: '개념 · 계산은 문헌 대조 뒤' },
+  { name: '허용구간', en: 'tolerance interval', target: '모집단의 일정 비율 β', q: '적어도 β의 모집단 질량을 신뢰수준 γ로 포함하는가?', status: '계산 · 아래 (P2)' },
 ]
 
 export function E08({ s, update }: { s: LabState; update: Update }) {
@@ -203,11 +204,12 @@ export function E08({ s, update }: { s: LabState; update: Update }) {
                   { tag: `β = ${L} 이상을 덮은 반복`, label: '허용구간이 정하는 확률 γ', value: pct(res.piMassGe / count), tone: 'orange', sub: method === 'z' && n === 25 && level === 0.95 ? '이론 68.4%' : undefined },
                 ]}
               />
-              <p className="chart-caption">예측구간은 모집단의 {L}를 평균적으로 덮지만, 한 번 만든 구간이 실제로 {L} 이상을 덮는지는 보장하지 않습니다. 허용구간은 ‘모집단의 β 이상을 덮을 확률이 γ 이상’이 되도록 더 넓게 만든 구간으로, β와 γ 두 수준을 따로 정합니다. 계산은 전문문헌 대조 뒤 추가합니다(PRD P2).</p>
+              <p className="chart-caption">예측구간은 모집단의 {L}를 평균적으로 덮지만, 한 번 만든 구간이 실제로 {L} 이상을 덮는지는 보장하지 않습니다. 허용구간은 ‘모집단의 β 이상을 덮을 확률이 γ 이상’이 되도록 더 넓게 만든 구간으로, β와 γ 두 수준을 따로 정합니다(아래).</p>
             </>
           ) : (
             <p className="chart-caption">표본을 뽑으면 나타납니다.</p>
           )}
+          <ToleranceSection s={s} update={update} reps={reps} />
 
           {selRow && selData && (
             <>

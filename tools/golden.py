@@ -486,6 +486,34 @@ def boot_cov(R=4000, B=1000, n=20, seed=7):
 g["Boot"] = {"x": _x.tolist(), "cases": _boot, "covExpMean20": {"R": 4000, "B": 1000, **boot_cov()}}
 
 
+# ---- P2: 정규 허용구간 (E08). SciPy quad로 정확 양측 계수, nct로 단측 계수, Howe 근사 ----
+from scipy.integrate import quad as _quad
+
+
+def _r(z, beta):
+    return _brentq(lambda r: norm.cdf(z + r) - norm.cdf(z - r) - beta, 0, abs(z) + 12, xtol=1e-14)
+
+
+def tol2_conf(k, n, beta):
+    f = lambda z: math.sqrt(n) * norm.pdf(z * math.sqrt(n)) * chi2.sf((n - 1) * _r(z, beta) ** 2 / k**2, n - 1)
+    return 2 * _quad(f, 0, np.inf, epsabs=1e-13, limit=200)[0]
+
+
+def tol2_k(n, beta, gamma):
+    return _brentq(lambda k: tol2_conf(k, n, beta) - gamma, 0.05, 50, xtol=1e-12)
+
+
+def howe(n, beta, gamma):
+    return math.sqrt((n - 1) * (1 + 1 / n) * norm.ppf((1 + beta) / 2) ** 2 / chi2.ppf(1 - gamma, n - 1))
+
+
+def tol1_k(n, beta, gamma):
+    return nct.ppf(gamma, n - 1, norm.ppf(beta) * math.sqrt(n)) / math.sqrt(n)
+
+
+g["Tol"] = [{"n": n, "beta": b, "gamma": c, "k2": tol2_k(n, b, c), "howe": howe(n, b, c), "k1": tol1_k(n, b, c)} for (n, b, c) in ((10, 0.9, 0.95), (25, 0.95, 0.95), (5, 0.99, 0.9), (50, 0.9, 0.99))]
+
+
 def _finite(v):
     """JSON에는 무한대가 없으므로 null로 쓴다 (테스트는 null을 ±∞로 읽는다)"""
     if isinstance(v, float) and math.isinf(v):
