@@ -21,6 +21,7 @@ export const EXPERIMENTS = [
   { id: 'e12', code: 'E12', title: '베이즈 심화: 동일꼬리·HPD', short: 'HPD, 끊어진 집합, 재매개화, 사전 민감도', tier: 'P1' },
   { id: 'e13', code: 'E13', title: 'CDF 역산과 비유일성', short: 'Uniform(0, θ)의 최댓값, 최단 구간', tier: 'P1' },
   { id: 'e14', code: 'E14', title: '부트스트랩 구간', short: '재표집분포, 백분위수·basic·BCa', tier: 'P2' },
+  { id: 'e15', code: 'E15', title: '일반화 피듀셜', short: '로그정규 평균, 일반화 피벗량(GPQ)', tier: 'P2' },
 ] as const
 
 export function LabTabs({ current }: { current: string }) {

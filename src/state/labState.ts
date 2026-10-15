@@ -118,6 +118,13 @@ export interface LabState {
   tb: number
   tgm: number
   tsd: 'two' | 'one'
+  /** E10 손실함수: 길이 1당 비용 b */
+  lc: number
+  /** E15 일반화 피듀셜: 로그 척도 μ, σ, 표본 번호, GPQ 뽑기 수 */
+  fm: number
+  fs: number
+  fi: number
+  fg: number
 }
 
 export const DEFAULTS: LabState = {
@@ -189,6 +196,11 @@ export const DEFAULTS: LabState = {
   tb: 0.9,
   tgm: 0.95,
   tsd: 'two',
+  lc: 0.0117,
+  fm: 0,
+  fs: 1,
+  fi: 0,
+  fg: 5000,
 }
 
 export const LIMITS = {
@@ -234,10 +246,15 @@ export const LIMITS = {
   bsi: [0, 1e6],
   tb: [0.5, 0.999],
   tgm: [0.5, 0.999],
+  lc: [1e-6, 100],
+  fm: [-5, 5],
+  fs: [0.1, 3],
+  fi: [0, 1e6],
+  fg: [500, 20000],
 } as const
 
-type NumKey = 'mu' | 'sigma' | 'n' | 'level' | 'k' | 'B' | 'show' | 'stage' | 'sel' | 'xbar' | 'mu0' | 'seed' | 'bn' | 'bx' | 'p0' | 'ps' | 'en' | 'pa' | 'pb' | 'm0' | 'tau0' | 'me' | 'nb' | 'lb' | 'ts' | 'sd' | 'n2' | 'sd2' | 'th1' | 'mu2' | 'sg2' | 'rho' | 'pp1' | 'pp2' | 'ga' | 'gb' | 'pn' | 'gs' | 'md' | 'mo' | 'un' | 'bs' | 'th' | 'bb' | 'bsi' | 'tb' | 'tgm'
-const INT_KEYS = new Set<NumKey>(['n', 'k', 'B', 'show', 'stage', 'sel', 'seed', 'bn', 'bx', 'en', 'nb', 'n2', 'pn', 'un', 'bb', 'bsi'])
+type NumKey = 'mu' | 'sigma' | 'n' | 'level' | 'k' | 'B' | 'show' | 'stage' | 'sel' | 'xbar' | 'mu0' | 'seed' | 'bn' | 'bx' | 'p0' | 'ps' | 'en' | 'pa' | 'pb' | 'm0' | 'tau0' | 'me' | 'nb' | 'lb' | 'ts' | 'sd' | 'n2' | 'sd2' | 'th1' | 'mu2' | 'sg2' | 'rho' | 'pp1' | 'pp2' | 'ga' | 'gb' | 'pn' | 'gs' | 'md' | 'mo' | 'un' | 'bs' | 'th' | 'bb' | 'bsi' | 'tb' | 'tgm' | 'lc' | 'fm' | 'fs' | 'fi' | 'fg'
+const INT_KEYS = new Set<NumKey>(['n', 'k', 'B', 'show', 'stage', 'sel', 'seed', 'bn', 'bx', 'en', 'nb', 'n2', 'pn', 'un', 'bb', 'bsi', 'fi', 'fg'])
 
 function readNum(p: URLSearchParams, key: NumKey): number {
   const raw = p.get(key)
@@ -325,6 +342,11 @@ export function parseState(p: URLSearchParams): LabState {
     bb: readNum(p, 'bb'),
     bsi: readNum(p, 'bsi'),
     tb: readNum(p, 'tb'),
+    lc: readNum(p, 'lc'),
+    fm: readNum(p, 'fm'),
+    fs: readNum(p, 'fs'),
+    fi: readNum(p, 'fi'),
+    fg: readNum(p, 'fg'),
     tgm: readNum(p, 'tgm'),
     tsd: p.get('tsd') === 'one' ? 'one' : 'two',
     pp1: readNum(p, 'pp1'),

@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import golden from '../golden/golden.json'
 import { criticalValue } from '../../src/engine/meanInterval'
-import { expectedLength, falseCoverage, integrateFalseCoverage, powerAt } from '../../src/engine/accuracy'
+import { costForLevel, expectedLength, falseCoverage, impliedLevel, integrateFalseCoverage, lossRisk, optimalHalfWidth, powerAt } from '../../src/engine/accuracy'
 import { summarize } from '../../src/engine/repeat'
 
 const g = golden.E10
@@ -45,4 +45,28 @@ describe('t 구간의 오포함확률 (σ 미지): MC가 비중심 t와 맞는�
       }
     })
   }
+})
+
+describe('손실함수 관점 (P2)', () => {
+  it('최적 반폭은 수치 최소화와 같다', () => {
+    for (const [b, se] of [[0.01, 5], [0.002, 5], [0.05, 1], [0.1, 1.5]]) {
+      let best = 0
+      let bestR = Infinity
+      for (let c = 0; c <= 6; c += 1e-5) {
+        const r = lossRisk(c, b, se)
+        if (r < bestR) {
+          bestR = r
+          best = c
+        }
+      }
+      expect(Math.abs(optimalHalfWidth(b, se) - best)).toBeLessThan(2e-5)
+    }
+  })
+  it('비용이 너무 크면 구간을 만들지 않는다 (c* = 0)', () => {
+    expect(optimalHalfWidth(1, 5)).toBe(0)
+    expect(impliedLevel(1, 5)).toBe(0)
+  })
+  it('95%를 고르는 비용 b와 그 비용이 고르는 수준은 서로 역함수', () => {
+    for (const lv of [0.8, 0.9, 0.95, 0.99]) expect(Math.abs(impliedLevel(costForLevel(lv, 5), 5) - lv)).toBeLessThan(1e-12)
+  })
 })

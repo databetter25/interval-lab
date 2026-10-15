@@ -39,3 +39,27 @@ export function integrateFalseCoverage(theta: number, se: number, aL: number, aU
   for (let i = 1; i < N; i++) sum += (i % 2 ? 4 : 2) * falseCoverage(theta, a + i * h, se, aL, aU)
   return (sum * h) / 3
 }
+
+/* ---------------- 손실함수 관점 (CB 9.3.4, P2) ---------------- */
+// 구간 x̄ ± c·SE에 손실 L = b·길이 − 1{θ ∈ C}를 매기면 위험은 R(c) = 2bc·SE − (2Φ(c) − 1).
+// R′(c) = 2b·SE − 2φ(c) = 0 ⟹ φ(c*) = b·SE. b·SE·√(2π) ≥ 1이면 c* = 0 (구간을 만들지 않는 편이 낫다)
+
+export function lossRisk(c: number, b: number, se: number): number {
+  return 2 * b * c * se - (2 * normCdf(c) - 1)
+}
+
+export function optimalHalfWidth(b: number, se: number): number {
+  const t = b * se * Math.sqrt(2 * Math.PI)
+  return t >= 1 ? 0 : Math.sqrt(-2 * Math.log(t))
+}
+
+/** 위험을 최소로 하는 구간의 포함률 = 그 손실이 ‘고른’ 신뢰수준 */
+export function impliedLevel(b: number, se: number): number {
+  return 2 * normCdf(optimalHalfWidth(b, se)) - 1
+}
+
+/** 신뢰수준 1 − α를 고르는 것과 같은 길이 비용 b = φ(Q_{1−α/2})/SE */
+export function costForLevel(level: number, se: number): number {
+  const z = normPpf(1 - (1 - level) / 2)
+  return Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI) / se
+}

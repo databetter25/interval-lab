@@ -18,7 +18,7 @@ const SELF_STUDY = [
   { session: '1차시', path: 'E01 → E02 → E04', topic: '검정에서 구간으로' },
   { session: '2차시', path: 'E03 → E05 → E08', topic: '구간 만들기와 설계' },
   { session: '3차시', path: 'E02·E04 이항 → E06 → E07', topic: '비율과 세 관점' },
-  { session: '심화', path: 'E09 → E10 → E11 → E12 → E13 → E14', topic: '가정, 정확성, 두 모집단, 베이즈, CDF 역산, 부트스트랩' },
+  { session: '심화', path: 'E09 → E10 → E11 → E12 → E13 → E14 → E15', topic: '가정, 정확성, 두 모집단, 베이즈, CDF 역산, 부트스트랩, 일반화 피듀셜' },
 ]
 
 /** 활동지 문항 (각 실험의 ‘예상하기’를 줄인 것). 정답 해설은 인쇄 옵션 */

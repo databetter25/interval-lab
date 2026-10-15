@@ -12,6 +12,7 @@ import { fmtInt, fmtNum } from '../lib/format'
 import { usePresent, useShortcuts } from '../lib/present'
 import { useReplicates } from '../lib/useReplicates'
 import { LIMITS, type LabState, type Update } from '../state/labState'
+import { LossSection } from './LossSection'
 
 const f4 = (v: number) => (Number.isFinite(v) ? fmtNum(v, 4) : '∞')
 const pct = (v: number, d = 2) => `${Math.round(v * 10 ** (d + 2)) / 10 ** d}%`
@@ -160,6 +161,7 @@ export function E10({ s, update }: { s: LabState; update: Update }) {
             {equalTail && Number.isFinite(len) ? `지금 배분의 기대 길이 ${f4(len)}는 등꼬리 ${f4(expectedLength(se, alpha / 2, alpha / 2))}보다 깁니다.` : ''}
             {!Number.isFinite(len) ? '한쪽 구간은 반대쪽의 모든 θ′를 언제나 포함하므로(곡선이 1로 감) 길이가 무한이지만, 자기 쪽에서는 양측 구간보다 틀린 값을 덜 포함합니다(가장 정확한 한쪽 한계).' : ''}
           </p>
+          <LossSection s={s} update={update} />
           <ExportBar s={s} update={update} experimentId="E10" svgRef={svgRef} />
           {present && (
             <p className="kbd-help">

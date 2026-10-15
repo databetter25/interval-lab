@@ -447,7 +447,7 @@ test('E10: AC-E10-1·2 오포함확률 0.4840 = 1 − 검정력, 넓이 = 기대
   await expect(stats.nth(1)).toContainText('합 = 1.0000')
   await expect(stats.nth(2)).toContainText('19.5996')
   await page.getByRole('button', { name: '1% / 4%' }).click()
-  await expect(page.locator('.col-chart .chart-caption')).toContainText('등꼬리 19.5996보다 깁니다')
+  await expect(page.locator('.col-chart .chart-caption').first()).toContainText('등꼬리 19.5996보다 깁니다')
   await page.getByRole('button', { name: '하한만' }).click()
   await expect(stats.nth(2)).toContainText('∞')
 })
@@ -544,9 +544,9 @@ test('메뉴: 상단은 핵심 경로만, 탭은 핵심/심화/확장', async ({
   await page.goto('./#/lab/e01')
   await expect(page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link')).toHaveCount(6)
   const tabs = page.getByRole('navigation', { name: '실험 선택' })
-  await expect(tabs.getByRole('link')).toHaveCount(14)
+  await expect(tabs.getByRole('link')).toHaveCount(15)
   await page.getByRole('link', { name: '전체 실험' }).click()
-  await expect(page.locator('#experiments .feat-card')).toHaveCount(14)
+  await expect(page.locator('#experiments .feat-card')).toHaveCount(15)
 })
 
 test('숨김 링크: URL에 참값이 없고, 공개하면 ±1.5σ 안의 참값이 나타난다', async ({ page, context }) => {
@@ -592,6 +592,33 @@ test('E14: 재표집분포는 관측값 근처, 세 부트스트랩 구간과 �
   const cov = page.getByRole('region', { name: '포함률 실험 표' })
   await expect(cov).toBeVisible({ timeout: 30_000 })
   await expect(cov.locator('tbody tr')).toHaveCount(3)
+})
+
+test('E10: 손실함수 관점 (P2) — 길이 비용 b가 신뢰수준을 고른다', async ({ page }) => {
+  await page.goto('./#/lab/e10')
+  const box = page.locator('.pivot-step .stat-box')
+  await expect(box.nth(1)).toContainText('94.99%')
+  await page.getByRole('button', { name: '95%와 같은 b로' }).click()
+  await expect(box.nth(1)).toContainText('95.00%')
+  await expect(box.nth(0)).toContainText(/1\.9(599|600)/)
+  // 같은 b에서 n을 늘리면(SE ↓) 더 높은 수준이 최적
+  await page.goto('./#/lab/e10?n=100&lc=0.0117')
+  await expect.poll(async () => Number(/([\d.]+)%/.exec((await box.nth(1).textContent())!)![1])).toBeGreaterThan(99)
+})
+
+test('E15: 일반화 피듀셜 — GPQ는 명목수준 근처, 원 척도 t는 모자란다', async ({ page }) => {
+  await page.goto('./#/lab/e15?seed=7&n=10')
+  const t = page.getByRole('region', { name: '일반화 피듀셜 구간 표' })
+  await expect(t.locator('tbody tr')).toHaveCount(4)
+  await page.getByRole('radio', { name: /보다 낮다/ }).click()
+  await page.getByRole('button', { name: '예상 확정' }).click()
+  await page.getByRole('button', { name: '포함률 실험 실행' }).click()
+  const cov = page.getByRole('region', { name: '포함률 실험 표' })
+  await expect(cov).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByText('예상이 맞았습니다.')).toBeVisible()
+  const rate = async (name: string) => Number(/([\d.]+)%/.exec((await cov.getByRole('row', { name: new RegExp(name) }).textContent())!)![1]) / 100
+  expect(await rate('일반화 피듀셜')).toBeGreaterThan(0.92)
+  expect(await rate('원 척도 t')).toBeLessThan(0.88)
 })
 
 test('E08: 허용구간 (P2) — 정확 k와 Howe, β 이상을 덮은 비율 ≈ γ', async ({ page }) => {

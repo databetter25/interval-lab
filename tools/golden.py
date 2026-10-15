@@ -514,6 +514,41 @@ def tol1_k(n, beta, gamma):
 g["Tol"] = [{"n": n, "beta": b, "gamma": c, "k2": tol2_k(n, b, c), "howe": howe(n, b, c), "k1": tol1_k(n, b, c)} for (n, b, c) in ((10, 0.9, 0.95), (25, 0.95, 0.95), (5, 0.99, 0.9), (50, 0.9, 0.99))]
 
 
+# ---- P2: 일반화 피듀셜 (E15). 로그정규 평균의 GPQ 구간, Cox 근사, 원 척도 t; 포함률은 numpy MC ----
+def fid_ivs(y, z, u, level=0.95):
+    n = len(y); x = np.log(y); xb = x.mean(); s2 = x.var(ddof=1); a = 1 - level
+    G = xb - z * math.sqrt(s2) * np.sqrt((n - 1) / u) / math.sqrt(n) + (n - 1) * s2 / u / 2
+    zq = norm.ppf(1 - a / 2); tq = tdist.ppf(1 - a / 2, n - 1)
+    h = zq * math.sqrt(s2 / n + s2**2 / (2 * (n - 1)))
+    yb = y.mean(); sy = y.std(ddof=1); lh = tq * math.sqrt(s2) / math.sqrt(n)
+    return {
+        "gpq": [math.exp(np.quantile(G, a / 2)), math.exp(np.quantile(G, 1 - a / 2))],
+        "cox": [math.exp(xb + s2 / 2 - h), math.exp(xb + s2 / 2 + h)],
+        "tRaw": [yb - tq * sy / math.sqrt(n), yb + tq * sy / math.sqrt(n)],
+        "logT": [math.exp(xb - lh), math.exp(xb + lh)],
+    }
+
+
+_fr = np.random.default_rng(15)
+_fy = np.exp(0.3 + 1.2 * _fr.standard_normal(12))
+_fz = _fr.standard_normal(400); _fu = _fr.chisquare(11, 400)
+g["Fid"] = {"y": _fy.tolist(), "z": _fz.tolist(), "u": _fu.tolist(), **fid_ivs(_fy, _fz, _fu)}
+
+
+def fid_cov(n=10, mu=0.0, sig=1.0, R=4000, M=2000, seed=16):
+    rng = np.random.default_rng(seed); th = math.exp(mu + sig**2 / 2)
+    hits = {"gpq": 0, "cox": 0, "tRaw": 0, "logT": 0}
+    for _ in range(R):
+        y = np.exp(mu + sig * rng.standard_normal(n))
+        iv = fid_ivs(y, rng.standard_normal(M), rng.chisquare(n - 1, M))
+        for m in hits:
+            hits[m] += iv[m][0] <= th <= iv[m][1]
+    return {m: v / R for m, v in hits.items()}
+
+
+g["FidCov"] = {"n": 10, "mu": 0.0, "sigma": 1.0, "R": 4000, "M": 2000, **fid_cov()}
+
+
 def _finite(v):
     """JSON에는 무한대가 없으므로 null로 쓴다 (테스트는 null을 ±∞로 읽는다)"""
     if isinstance(v, float) and math.isinf(v):
