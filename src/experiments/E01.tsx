@@ -15,6 +15,7 @@ import { usePresent, useShortcuts } from '../lib/present'
 import { useReplicates } from '../lib/useReplicates'
 import { LIMITS, serializeState, type LabState, type Update } from '../state/labState'
 
+const trim = (v: number) => String(Number(v.toFixed(3)))
 const pct = (v: number, d = 1) => (Number.isFinite(v) ? `${(v * 100).toFixed(d)}%` : '—')
 
 const E01_PRESETS: { id: string; label: string; desc: string; patch: Partial<LabState> }[] = [
@@ -239,6 +240,9 @@ export function E01({ s, update }: { s: LabState; update: Update }) {
               ) : (
                 <p className="chart-caption">100개 묶음이 2개 이상 모이면(200회 이상) 나타납니다. ‘1,000회’를 눌러 보세요.</p>
               )}
+              <p className="note" data-testid="workbook-note">
+                <b>워크북과 함께 읽기.</b> 워크북 8.1의 ‘{Math.round(s.level * 100)}% 신뢰구간을 100번 만들면 그중 {trim(100 * s.level)}개가 모수를 포함한다’는 <b>평균적으로</b> 그렇다는 뜻입니다. 100개 묶음마다 포함 개수는 위 그림처럼 흔들리며, 그 표준편차는 √(100 × {trim(s.level)} × {trim(1 - s.level)}) ≈ {fmtNum(Math.sqrt(100 * s.level * (1 - s.level)), 2)}개입니다. 정확히 {pct(s.level)}에 맞는 것은 반복을 한없이 늘렸을 때의 비율이고, 그래서 교재와 워크북은 신뢰수준을 ‘비율의 극한’으로 정의합니다.
+              </p>
             </>
           )}
 

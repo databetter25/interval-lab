@@ -702,3 +702,13 @@ test('진단: 오개념을 먼저 보여 주고, 사전·사후 정규화 이득
   const n = await page.evaluate(() => JSON.parse(localStorage.getItem('interval-lab:log:v1') ?? '[]').filter((e: { experiment_id: string }) => e.experiment_id.startsWith('DIAG')).length)
   expect(n).toBe(24)
 })
+
+test('E01: 워크북 8.1 연결 문구 — 100개 중 95개는 평균, 표준편차 2.18개', async ({ page }) => {
+  await page.goto('./#/lab/e01?seed=7&k=1000')
+  const note = page.getByTestId('workbook-note')
+  await expect(note).toContainText('그중 95개가 모수를 포함한다')
+  await expect(note).toContainText('평균적으로')
+  await expect(note).toContainText('√(100 × 0.95 × 0.05) ≈ 2.18개')
+  await page.goto('./#/lab/e01?seed=7&k=1000&level=0.9')
+  await expect(note).toContainText('√(100 × 0.9 × 0.1) ≈ 3.00개')
+})
