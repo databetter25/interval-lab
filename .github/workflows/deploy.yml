@@ -26,6 +26,8 @@ jobs:
       - run: npm ci
       # 기준값(SciPy)·불변식·시뮬레이션 테스트가 통과해야만 배포한다
       - run: npm test
+      # 파일럿 분석 스크립트 (표준 라이브러리만 사용)
+      - run: python3 tools/test_pilot_analysis.py
       # 배포 산출물로 E2E·접근성(axe, WCAG 2.2 AA)·오프라인 테스트
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test

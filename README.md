@@ -84,3 +84,17 @@ npm run build    # dist/ 정적 산출물 (상대 경로, 서비스 워커 포�
 ## 배포
 
 `main`에 푸시하면 GitHub Actions(`.github/workflows/deploy.yml`)가 단위 테스트 → E2E·접근성 → 빌드를 거쳐 통과할 때만 GitHub Pages에 배포한다. 빌드는 상대 경로라 하위 경로(`/interval-lab/`)에서도 동작하고, 서비스 워커가 산출물을 미리 캐시해 한 번 연 뒤에는 오프라인에서도 쓸 수 있다.
+
+## 파일럿 분석 (PRD §2.3, §15.1 S4)
+
+1. 학습자는 홈 화면 ‘내 학습기록’의 **제출 파일 내보내기**에 참가 번호(예: `P07`)만 넣어 `interval-lab-pilot-P07.json`을 만들고, 동의한 경우에만 제출한다. 파일에는 사전·사후 진단의 채점 결과, 예상하기 기록, 연 실험 목록이 들어 있다.
+2. 모은 파일을 한 폴더(예: `pilot-data/`, 저장소에 올라가지 않음)에 두고 실행한다.
+
+```bash
+python tools/pilot_analysis.py pilot-data/ --out pilot-report/
+```
+
+결과: `report.md`(§2.3 지표와 초기 목표 대비 판정, 95% 구간, 문항별·오개념별 표, 한계), `learners.csv`, `items.csv`, `misconceptions.csv`. 학습자의 자유 응답은 `--with-reasons`를 줄 때만 `reasons.csv`로 따로 나온다. 표준 라이브러리만 쓴다.
+
+보고서 모양을 미리 보려면 합성 자료를 만든다: `python tools/pilot_sample.py pilot-data-demo/ --n 24`. 테스트: `python tools/test_pilot_analysis.py`(CI에서도 실행).
+

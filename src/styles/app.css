@@ -759,3 +759,7 @@ body.present .lab-grid {
   display: table;
   margin-bottom: 4px;
 }
+
+.pilot-box {
+  margin-top: 20px;
+}

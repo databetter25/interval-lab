@@ -30,3 +30,7 @@ dist-ssr
 # Playwright
 test-results/
 playwright-report/
+# 파일럿 학습자 자료와 분석 결과는 저장소에 올리지 않는다 (PRD §12.6)
+pilot-data/
+pilot-report/
+interval-lab-pilot-*.json

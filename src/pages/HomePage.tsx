@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { EXPERIMENTS } from '../components/lab'
 import { clearLog, readLog } from '../lib/learningLog'
+import { buildPilotExport } from '../lib/pilot'
+import { clearVisits } from '../lib/visits'
 import { downloadText } from '../lib/download'
 import { useState } from 'react'
 
@@ -8,6 +10,7 @@ const HYPOTHESIS_LAB = 'https://databetter25.github.io/hypothesis-lab/'
 
 export function HomePage() {
   const [logCount, setLogCount] = useState(() => readLog().length)
+  const [pid, setPid] = useState('')
   return (
     <>
       <section className="hero">
@@ -107,12 +110,35 @@ export function HomePage() {
               onClick={() => {
                 if (confirm('이 브라우저의 학습기록을 모두 지울까요?')) {
                   clearLog()
+                  clearVisits()
                   setLogCount(0)
                 }
               }}
             >
               기록 지우기
             </button>
+          </div>
+          <div className="panel pilot-box">
+            <h3 className="chart-title" style={{ marginTop: 0 }}>
+              파일럿 참여자: 제출 파일 만들기
+            </h3>
+            <p className="desc" style={{ margin: '4px 0 10px' }}>
+              사전·사후 진단 결과, 예상하기 기록, 연 실험 목록을 한 파일로 내보냅니다. 이름 대신 안내받은 참가 번호만 적으세요. 파일은 이 컴퓨터에 저장되며, 제출은 동의한 경우에만 직접 합니다.
+            </p>
+            <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+              <label className="row" style={{ gap: 6 }}>
+                참가 번호
+                <input className="num-input" style={{ width: 120 }} value={pid} onChange={(e) => setPid(e.target.value.replace(/[^\w-]/g, '').slice(0, 20))} placeholder="예: P07" />
+              </label>
+              <button
+                type="button"
+                className="btn-filled sm"
+                disabled={!pid}
+                onClick={() => downloadText(JSON.stringify(buildPilotExport(pid), null, 2), `interval-lab-pilot-${pid}.json`, 'application/json')}
+              >
+                제출 파일 내보내기
+              </button>
+            </div>
           </div>
         </div>
       </section>

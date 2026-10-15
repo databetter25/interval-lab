@@ -9,6 +9,8 @@ export interface DiagOption {
 
 export interface DiagItem {
   id: string
+  /** 해석 문항(§2.3 해석 정답률에 들어감) 또는 계산 문항 */
+  kind: 'interp' | 'calc'
   mis: string[]
   exp: string
   stem: string
@@ -19,7 +21,7 @@ export interface DiagItem {
 
 export const DIAG_ITEMS: DiagItem[] = [
   {
-    id: 'D01', mis: ['M1'], exp: 'e01',
+    id: 'D01', kind: 'interp', mis: ['M1'], exp: 'e01',
     stem: '어떤 연구에서 μ의 95% 신뢰구간 [12.1, 15.3]을 얻었다. 옳은 진술은?',
     answers: [
       { text: 'μ가 [12.1, 15.3] 안에 있을 확률이 0.95다.', mis: 'M1' },
@@ -34,7 +36,7 @@ export const DIAG_ITEMS: DiagItem[] = [
     explain: '빈도론에서 확률은 반복되는 절차에 붙습니다. 관측된 구간 하나는 μ를 포함하거나 포함하지 않으며, 그 사실에 확률 0.95를 매기지 않습니다.',
   },
   {
-    id: 'D02', mis: ['M2'], exp: 'e01',
+    id: 'D02', kind: 'calc', mis: ['M2'], exp: 'e01',
     stem: '같은 방법으로 95% 신뢰구간을 서로 독립적으로 100번 만들 때, 참값을 포함하는 구간의 수는?',
     answers: [
       { text: '정확히 95개다.', mis: 'M2' },
@@ -49,7 +51,7 @@ export const DIAG_ITEMS: DiagItem[] = [
     explain: '95%는 무한히 반복할 때의 비율입니다. 유한한 100번에서는 이항분포만큼 흔들립니다.',
   },
   {
-    id: 'D03', mis: ['M3'], exp: 'e08',
+    id: 'D03', kind: 'interp', mis: ['M3'], exp: 'e08',
     stem: '정규 모집단에서 n = 25로 만든 μ의 95% 신뢰구간이, 같은 모집단에서 새로 뽑은 관측값 하나를 포함할 확률은 대략?',
     answers: [
       { text: '95%', mis: 'M3' },
@@ -64,7 +66,7 @@ export const DIAG_ITEMS: DiagItem[] = [
     explain: '새 관측값을 대상으로 하려면 폭이 약 √(n + 1)배인 예측구간이 필요합니다. n = 25에서 신뢰구간이 새 관측값을 포함할 확률은 약 30%입니다.',
   },
   {
-    id: 'D04', mis: ['M4'], exp: 'e04',
+    id: 'D04', kind: 'interp', mis: ['M4'], exp: 'e04',
     stem: 'σ를 아는 정규평균에서 μ의 95% z 신뢰구간이 [90.2, 109.8]이다. 같은 자료로 유의수준 5% 양측 z 검정을 하여 H₀: μ = 95를 검정하면?',
     answers: [
       { text: 'H₀를 기각한다.' },
@@ -79,7 +81,7 @@ export const DIAG_ITEMS: DiagItem[] = [
     explain: '같은 검정을 뒤집어 만든 구간이므로, μ₀가 구간 안에 있는 것과 기각되지 않는 것은 같은 말입니다.',
   },
   {
-    id: 'D05', mis: ['M5'], exp: 'e06',
+    id: 'D05', kind: 'interp', mis: ['M5'], exp: 'e06',
     stem: '새로운 95% 구간 방법이 기존 방법보다 평균 길이가 20% 짧다. 이 방법을 쓰는 것이 낫다고 판단하려면?',
     answers: [
       { text: '짧으므로 바로 더 낫다.', mis: 'M5' },
@@ -94,7 +96,7 @@ export const DIAG_ITEMS: DiagItem[] = [
     explain: '길이 비교는 포함률이 지켜진 방법들 사이에서만 의미가 있습니다. 이항의 Wald 구간은 짧지만 포함률이 크게 모자랄 수 있습니다.',
   },
   {
-    id: 'D06', mis: ['M6'], exp: 'e06',
+    id: 'D06', kind: 'interp', mis: ['M6'], exp: 'e06',
     stem: 'n = 10 이항에서 Wald 95% 구간의 정확 포함률이 84%인 p가 있다. 구현 오류인가?',
     answers: [
       { text: '구현 오류다.', mis: 'M6' },
@@ -109,7 +111,7 @@ export const DIAG_ITEMS: DiagItem[] = [
     explain: '이항 포함률은 x = 0, …, n에 대한 합으로 정확히 계산됩니다. Wald 검정이 크기를 지키지 못하므로 그것을 뒤집은 구간도 포함률을 지키지 못합니다.',
   },
   {
-    id: 'D07', mis: ['M7'], exp: 'e05',
+    id: 'D07', kind: 'calc', mis: ['M7'], exp: 'e05',
     stem: 'σ를 아는 z 구간에서 n을 25에서 100으로 늘리면 오차한계는?',
     answers: [
       { text: '1/4로 줄어든다.', mis: 'M7' },
@@ -124,7 +126,7 @@ export const DIAG_ITEMS: DiagItem[] = [
     explain: 'z·σ/√n에서 n이 4배가 되면 √n은 2배이므로 오차한계는 절반입니다.',
   },
   {
-    id: 'D08', mis: ['M8'], exp: 'e06',
+    id: 'D08', kind: 'interp', mis: ['M8'], exp: 'e06',
     stem: '어떤 95% 신용구간의 사후질량은 95%인데, 고정된 p에서 계산한 반복표집 포함률은 90.4%다. 모순인가?',
     answers: [
       { text: '모순이다. 둘 중 하나가 잘못 계산되었다.', mis: 'M8' },
@@ -138,7 +140,7 @@ export const DIAG_ITEMS: DiagItem[] = [
     explain: '두 확률은 서로 다른 것에 붙습니다. 예: n = 10, p = 0.01인 Jeffreys 구간은 x = 0일 때만 p를 포함하므로 포함률은 0.99¹⁰ ≈ 90.4%입니다.',
   },
   {
-    id: 'D09', mis: ['M9'], exp: 'e03',
+    id: 'D09', kind: 'interp', mis: ['M9'], exp: 'e03',
     stem: '같은 정규 자료로 두 사람이 95% t 구간을 만들었다. 한 사람은 꼬리를 2.5%/2.5%로, 다른 사람은 1%/4%로 나누었다. 옳은 것은?',
     answers: [
       { text: '둘 중 하나는 틀린 구간이다.', mis: 'M9' },
@@ -152,7 +154,7 @@ export const DIAG_ITEMS: DiagItem[] = [
     explain: '피벗을 쓸 때 꼬리 배분은 선택입니다. 대칭 분포에서는 2.5%/2.5%가 가장 짧을 뿐입니다.',
   },
   {
-    id: 'D10', mis: ['M10'], exp: 'e04',
+    id: 'D10', kind: 'interp', mis: ['M10'], exp: 'e04',
     stem: 'H₀: μ = 50을 유의수준 5%로 검정했더니 p = 0.31로 기각하지 못했다. 옳은 결론은?',
     answers: [
       { text: 'μ = 50임이 확인되었다.', mis: 'M10' },
@@ -167,7 +169,7 @@ export const DIAG_ITEMS: DiagItem[] = [
     explain: '기각하지 못한 값은 하나가 아니라 구간 전체입니다. p-값은 H₀ 아래에서 관측한 것 이상으로 극단적인 결과가 나올 확률입니다.',
   },
   {
-    id: 'D11', mis: ['M11'], exp: 'e07',
+    id: 'D11', kind: 'interp', mis: ['M11'], exp: 'e07',
     stem: 'σ를 아는 정규 모형에서 평탄 사전을 쓰면 95% z 신뢰구간과 95% 신용구간의 끝점이 같다. 옳은 것은?',
     answers: [
       { text: '끝점이 같으므로 두 해석도 같다.', mis: 'M11' },
@@ -181,7 +183,7 @@ export const DIAG_ITEMS: DiagItem[] = [
     explain: '이 단순 모형에서는 숫자가 우연히 일치합니다. 사전이나 모형을 바꾸면 끝점도 갈라집니다(E07, E12).',
   },
   {
-    id: 'D12', mis: ['M6'], exp: 'e09',
+    id: 'D12', kind: 'interp', mis: ['M6'], exp: 'e09',
     stem: '오른쪽으로 크게 치우친 모집단에서 n = 10으로 만든 95% t 구간의 실제 포함률은?',
     answers: [
       { text: '95%가 보장된다.', mis: 'M6' },

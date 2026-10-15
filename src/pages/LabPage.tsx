@@ -1,6 +1,7 @@
-import { Suspense, lazy, type ComponentType } from 'react'
+import { Suspense, lazy, useEffect, type ComponentType } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { EXPERIMENTS, LabTabs } from '../components/lab'
+import { recordVisit } from '../lib/visits'
 import { useLabState, type LabState, type Update } from '../state/labState'
 
 type Exp = ComponentType<{ s: LabState; update: Update }>
@@ -28,6 +29,9 @@ export function LabPage() {
   const { id = 'e01' } = useParams()
   const [s, update] = useLabState()
   const meta = EXPERIMENTS.find((e) => e.id === id)
+  useEffect(() => {
+    if (meta) recordVisit(meta.code)
+  }, [meta])
   if (!meta) return <Navigate to="/lab/e01" replace />
   const Page = PAGES[id]
   return (

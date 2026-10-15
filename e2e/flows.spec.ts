@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { readFileSync } from 'node:fs'
 import { DIAG_ITEMS } from '../src/content/diagnostic'
 
 // MVP-α 수용 기준을 실제 화면에서 확인한다 (PRD v2 §7, §14.4)
@@ -711,4 +712,39 @@ test('E01: 워크북 8.1 연결 문구 — 100개 중 95개는 평균, 표준편
   await expect(note).toContainText('√(100 × 0.95 × 0.05) ≈ 2.18개')
   await page.goto('./#/lab/e01?seed=7&k=1000&level=0.9')
   await expect(note).toContainText('√(100 × 0.9 × 0.1) ≈ 3.00개')
+})
+
+test('파일럿 제출 파일: 진단 채점·학습기록·방문 기록을 한 파일로 내보낸다', async ({ page }) => {
+  await page.goto('./#/lab/e01?seed=3')
+  await expect(page.locator('h1')).toHaveText('반복표집 실험실')
+  await page.goto('./#/lab/e04')
+  await expect(page.locator('h1')).toHaveText('검정 역산과 p-값 함수')
+  await page.goto('./#/learn/diagnose')
+  for (const it of DIAG_ITEMS) {
+    const box = page.locator('.diag-item', { hasText: it.id })
+    const ai = it.id === 'D01' ? 0 : it.answers.findIndex((o) => o.correct)
+    await box.locator('fieldset').nth(0).getByRole('radio').nth(ai).check()
+    await box.locator('fieldset').nth(1).getByRole('radio').nth(it.reasons.findIndex((o) => o.correct)).check()
+  }
+  await page.getByRole('button', { name: '사전 진단 제출' }).click()
+  await page.goto('./#/')
+  const btn = page.getByRole('button', { name: '제출 파일 내보내기' })
+  await expect(btn).toBeDisabled()
+  await page.getByLabel('참가 번호').fill('P07 이름')
+  await expect(page.getByLabel('참가 번호')).toHaveValue('P07')
+  const [dl] = await Promise.all([page.waitForEvent('download'), btn.click()])
+  expect(dl.suggestedFilename()).toBe('interval-lab-pilot-P07.json')
+  const d = JSON.parse(readFileSync((await dl.path())!, 'utf-8'))
+  expect(d.schema).toBe('interval-lab-pilot')
+  expect(d.schema_version).toBe(1)
+  expect(d.participant_id).toBe('P07')
+  expect(d.items).toHaveLength(12)
+  expect(d.items.filter((i: { kind: string }) => i.kind === 'interp')).toHaveLength(10)
+  expect(d.diagnostic.post).toBeNull()
+  expect(d.diagnostic.pre.score).toBeCloseTo((100 * 11) / 12, 6)
+  expect(d.diagnostic.pre.interp_score).toBeCloseTo(90, 6)
+  expect(d.diagnostic.pre.holds_m1).toBe(true)
+  expect(d.diagnostic.pre.items.D01).toEqual({ answered: true, correct: false, misconceptions: ['M1'] })
+  expect(Object.keys(d.visits).sort()).toEqual(['E01', 'E04'])
+  expect(d.log.filter((e: { experiment_id: string }) => e.experiment_id === 'DIAG-pre')).toHaveLength(12)
 })
