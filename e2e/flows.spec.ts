@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { DIAG_ITEMS } from '../src/content/diagnostic'
 
 // MVP-α 수용 기준을 실제 화면에서 확인한다 (PRD v2 §7, §14.4)
 
@@ -648,4 +649,56 @@ test('강의자 도구: 경로 링크, 숨김 링크 생성, 활동지 답 토�
   await expect(page.locator('.worksheet-answer')).toHaveCount(12)
   await page.getByRole('link', { name: 'E02 열기' }).click()
   await expect(page).toHaveURL(/lab\/e02\?stage=1/)
+})
+
+test('학습 자료: 용어·해석, 방법 카탈로그 필터, 출처 앵커', async ({ page }) => {
+  await page.goto('./#/')
+  await page.getByRole('link', { name: '학습 자료' }).click()
+  await expect(page.locator('h1')).toHaveText('용어·해석')
+  await expect(page.getByRole('region', { name: '오개념 카탈로그 표' }).locator('tbody tr')).toHaveCount(11)
+  await page.getByRole('navigation', { name: '학습 자료' }).getByRole('link', { name: '방법 카탈로그' }).click()
+  await page.getByLabel('구성').selectOption({ label: 'CDF 역산' })
+  await expect(page.locator('.method-card')).toHaveCount(2)
+  await expect(page.locator('.method-card').first()).toContainText('Clopper–Pearson')
+  await page.getByLabel('구성').selectOption('all')
+  await page.getByLabel('범위').selectOption('교재')
+  for (const card of await page.locator('.method-card').all()) await expect(card).toContainText('교재')
+  await page.getByRole('navigation', { name: '학습 자료' }).getByRole('link', { name: '역사와 논쟁' }).click()
+  await page.getByRole('link', { name: '[Neyman1937]' }).click()
+  await expect(page).toHaveURL(/learn\/sources#Neyman1937/)
+  await expect(page.locator('tr#Neyman1937')).toBeInViewport()
+})
+
+test('진단: 오개념을 먼저 보여 주고, 사전·사후 정규화 이득과 M1 보유를 계산', async ({ page }) => {
+  await page.goto('./#/learn/diagnose')
+  const items = page.locator('.diag-item')
+  await expect(items).toHaveCount(12)
+  await expect(page.getByRole('radio', { name: /사전 진단/ })).toHaveAttribute('aria-checked', 'true')
+  const answerAll = async (wrongD01: boolean) => {
+    for (const it of DIAG_ITEMS) {
+      const box = page.locator('.diag-item', { hasText: it.id })
+      const ai = wrongD01 && it.id === 'D01' ? 0 : it.answers.findIndex((o) => o.correct)
+      await box.locator('fieldset').nth(0).getByRole('radio').nth(ai).check()
+      await box.locator('fieldset').nth(1).getByRole('radio').nth(it.reasons.findIndex((o) => o.correct)).check()
+    }
+  }
+  await answerAll(true)
+  await expect(page.getByText('12 / 12 문항 응답')).toBeVisible()
+  await page.getByRole('button', { name: '사전 진단 제출' }).click()
+  await expect(page.locator('#diag-mis')).toHaveText('사전 진단: 먼저 오개념부터')
+  await expect(page.locator('.mis-list li')).toHaveCount(1)
+  await expect(page.locator('.mis-list li')).toContainText('M1 · 1번 선택')
+  await expect(page.locator('.stat-box').first()).toContainText('92%')
+  await page.getByRole('button', { name: '다시 풀기' }).click()
+  await expect(page.getByRole('radio', { name: /사후 진단/ })).toHaveAttribute('aria-checked', 'true')
+  await answerAll(false)
+  await page.getByRole('button', { name: '사후 진단 제출' }).click()
+  await expect(page.getByText('고른 답과 이유에서 오개념이 드러나지 않았습니다.')).toBeVisible()
+  const pp = page.locator('.stat-box').nth(1)
+  await expect(pp).toContainText('92% → 100%')
+  await expect(pp).toContainText('정규화 이득 1.00')
+  await expect(pp).toContainText('M1 보유 예 → 아니오')
+  // 학습기록에도 남는다
+  const n = await page.evaluate(() => JSON.parse(localStorage.getItem('interval-lab:log:v1') ?? '[]').filter((e: { experiment_id: string }) => e.experiment_id.startsWith('DIAG')).length)
+  expect(n).toBe(24)
 })

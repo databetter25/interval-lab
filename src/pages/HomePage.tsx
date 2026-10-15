@@ -91,7 +91,10 @@ export function HomePage() {
           <p className="eyebrow">03 — 내 학습기록</p>
           <h2 className="section-title">예상과 결과</h2>
           <p className="desc">
-            실험의 ‘예상하기’ 기록 {logCount}건이 이 브라우저에만 저장되어 있습니다. 서버로는 아무것도 보내지 않습니다. 파일럿에 참여한다면 아래에서 내보내 직접 제출하세요.
+            시작하기 전에 <Link to="/learn/diagnose">사전 진단</Link>(12문항)을 풀고, 학습을 마친 뒤 사후 진단으로 변화를 확인해 보세요. 헷갈리는 표현은 <Link to="/learn/guide">용어·해석</Link>, 구간 방법의 비교는 <Link to="/learn/methods">방법 카탈로그</Link>에 정리되어 있습니다.
+          </p>
+          <p className="desc">
+            실험의 ‘예상하기’와 진단 기록 {logCount}건이 이 브라우저에만 저장되어 있습니다. 서버로는 아무것도 보내지 않습니다. 파일럿에 참여한다면 아래에서 내보내 직접 제출하세요.
           </p>
           <div className="btn-row" style={{ justifyContent: 'flex-start' }}>
             <button type="button" className="btn-outline" disabled={!logCount} onClick={() => downloadText(JSON.stringify(readLog(), null, 2), 'interval-lab-learning-log.json', 'application/json')}>

@@ -51,6 +51,8 @@ npm run build    # dist/ 정적 산출물 (상대 경로, 서비스 워커 포�
 | `src/engine/core/` | Φ·Φ⁻¹, t분포, 불완전베타, xoshiro128** 난수 — 검정 실험실(hypothesis-lab)에서 가져옴 |
 | `src/lib/useReplicates.ts` | 반복 요약값 캐시. 작은 요청은 바로, 큰 요청은 Web Worker에서 계산. E01·E02가 공유 |
 | `src/state/labState.ts` | 실험 설정 ↔ URL 쿼리 (URL이 단일 진실원, 잘못된 값은 기본값 복원) |
+| `src/content/` | 학습 자료 콘텐츠: 오개념·해석·용어집(guide), 방법 메타데이터(methods), 진단 문항(diagnostic), 출처 레코드(sources) |
+| `src/pages/LearnPage.tsx` | 학습 자료 `#/learn/{guide,methods,diagnose,history,sources}` |
 | `src/experiments/` | E01–E15 화면 |
 | `src/components/chart/` | 구간 더미, 수렴 깔때기, 묶음 히스토그램, 신뢰띠, 표본분포, p-값 함수 |
 | `tools/golden.py` | SciPy 기준값 → `tests/golden/golden.json` |

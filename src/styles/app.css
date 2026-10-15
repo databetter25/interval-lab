@@ -577,6 +577,8 @@ body.present .lab-grid {
 
 /* 문단 안의 링크는 색만으로 구분하지 않는다 (WCAG link-in-text-block) */
 .note a,
+.desc a,
+.learn p a,
 .chart-caption a,
 .explain p a {
   text-decoration: underline;
@@ -664,4 +666,96 @@ body.present .lab-grid {
   .badge {
     border: 1px solid #999;
   }
+}
+
+/* ---------- 학습 자료 ---------- */
+.interp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+.interp-card p {
+  margin: 0 0 8px;
+}
+.interp-no s {
+  color: var(--c-text-secondary);
+}
+.method-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 12px 0 16px;
+}
+.method-filters select {
+  font: inherit;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--c-border);
+  background: var(--c-bg);
+  color: var(--c-text-primary);
+}
+.method-list,
+.mis-list,
+.diag-list,
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+  list-style: none;
+}
+.method-formula {
+  overflow-x: auto;
+}
+.method-dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  margin: 8px 0 0;
+}
+.method-dl dt {
+  font-weight: var(--fw-semibold);
+  color: var(--c-text-secondary);
+}
+.method-dl dd {
+  margin: 0;
+}
+.diag-item fieldset {
+  border: 0;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.diag-item legend {
+  font-weight: var(--fw-semibold);
+  font-size: 0.85rem;
+  color: var(--c-text-secondary);
+  padding: 0;
+}
+.diag-opt {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 6px 0;
+  min-height: 24px;
+  cursor: pointer;
+}
+.diag-opt input {
+  margin-top: 4px;
+  flex: none;
+}
+.diag-item.ok {
+  border-left: 4px solid var(--c-cover);
+}
+.diag-item.no {
+  border-left: 4px solid var(--c-miss);
+}
+@media (max-width: 600px) {
+  .method-dl {
+    grid-template-columns: 1fr;
+  }
+}
+.interp-card p .badge {
+  display: table;
+  margin-bottom: 4px;
 }

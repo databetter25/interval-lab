@@ -4,6 +4,7 @@ import { HomePage } from './pages/HomePage'
 import { PresentContext } from './lib/present'
 
 const LabPage = lazy(() => import('./pages/LabPage').then((m) => ({ default: m.LabPage })))
+const LearnPage = lazy(() => import('./pages/LearnPage').then((m) => ({ default: m.LearnPage })))
 const TeachPage = lazy(() => import('./pages/TeachPage').then((m) => ({ default: m.TeachPage })))
 
 function NotFound() {
@@ -55,6 +56,9 @@ export default function App() {
             </NavLink>
           </nav>
           <div className="nav-tools">
+            <NavLink to="/learn/guide" className="btn-ghost sm">
+              학습 자료
+            </NavLink>
             <NavLink to="/teach" className="btn-ghost sm">
               강의자 도구
             </NavLink>
@@ -71,6 +75,8 @@ export default function App() {
             <Route path="/lab" element={<LabPage />} />
             <Route path="/lab/:id" element={<LabPage />} />
             <Route path="/teach" element={<TeachPage />} />
+            <Route path="/learn" element={<LearnPage />} />
+            <Route path="/learn/:tab" element={<LearnPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
