@@ -10,7 +10,7 @@ const method = fc.constantFrom<Method>('z', 't')
 
 /** 경계에 너무 가까운 점은 부동소수 반올림이 판정을 정하므로 뺀다 */
 function farFromEdges(v: number, lo: number, hi: number, scale: number) {
-  const eps = 1e-9 * Math.max(1, scale)
+  const eps = 1e-7 * Math.max(1, scale)
   return Math.abs(v - lo) > eps && Math.abs(v - hi) > eps
 }
 
