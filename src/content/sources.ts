@@ -24,7 +24,10 @@ export const SOURCES: SourceRecord[] = [
     id: 'TB-9', kind: '교재', title: '『통계학의 개념 및 제문제』 제9장 베이즈 추론', section: '9.4 신용구간 (인쇄 344–347쪽), 예 9.7·9.8', status: '대조완료',
     usedIn: ['E07', 'E12'], note: '예 9.7의 사후 Beta(4, 8)과 예 9.8의 HPD를 기준값으로 등록',
   },
-  { id: 'WB', kind: '워크북', title: '워크북', status: '초안', usedIn: [], note: '작업 폴더에 없어 확인하지 못함. 문항 근거로 쓰지 않음' },
+  {
+    id: 'WB', kind: '워크북', title: '『통계학의 개념 및 제문제 워크북』 이긍희 편저, 한국방송통신대학교출판문화원, 1개정판(2019)', section: '제8장 구간추정 (132–144쪽), 9.4 베이즈 구간추정 (151–152쪽), 2018 기말시험 25번 (170쪽)', status: '대조완료',
+    usedIn: ['E01', 'E02', 'E03', 'E04', 'E06', 'E07', 'E09', 'E11', 'E12', '진단'], note: '절 구성과 예제 범위를 사이트 매핑과 대조(2026-10-15). 본문·예제·문항은 싣지 않음. 8.1의 “100번 중 95개” 서술은 교수 검토 항목',
+  },
   {
     id: 'CB2', kind: 'CB2', title: 'Casella, G. & Berger, R. L. (2002). Statistical Inference, 2nd ed., 제9장', section: '9.1–9.3 (절 번호로만 연결)',
     url: 'https://www.routledge.com/Statistical-Inference/Berger-Casella/p/book/9781032593036', accessed: '2026-10-14', status: '초안', usedIn: ['E02', 'E03', 'E04', 'E10', 'E13'],
